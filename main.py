@@ -6,7 +6,8 @@
 # cloud sync to upload the watermarked image and watermark style and position to the cloud storage
 
 
-from tkinter import Tk, PhotoImage, Label, Canvas, Button, filedialog
+from tkinter import *
+from tkinter import filedialog
 from PIL import Image, ImageTk
 
 HEADING_TEXT_COLOR = "black"
@@ -31,7 +32,10 @@ class UserInterface(Tk):
         self.resizable(False, False)
         self.title("Image Watermarking Desktop App")
 
+        self.zoom_scale = 1.0
+
         self.add_home_screen_image()
+
 
 
     def add_home_screen_image(self):
@@ -83,8 +87,8 @@ class UserInterface(Tk):
         [widget.destroy() for widget in self.winfo_children()]   # this for loop destroy the previous screen all widget
 
         # create canvas for image area
-        self.image_area_canvas = Canvas(width= 800, height=700, bg = "#313131", highlightthickness = 0)
-        self.image_area_canvas.place(x = 0, y = 0)
+        self.image_canvas = Canvas(width= 800, height=700, bg = "#313131", highlightthickness = 0)
+        self.image_canvas.place(x = 0, y = 0)
 
         # create canvas for editing widget buttons
         self.image_edit_widget_canvas = Canvas(width=280, height=700, bg="#494949", highlightthickness=0)
@@ -109,11 +113,40 @@ class UserInterface(Tk):
     def display_image(self, image_file):
         """this method will display image on the screen"""
 
-        print(f"Selected Image: {image_file}")
+        self.original_image = Image.open(image_file)
+        self.original_width = self.original_image.width
+        self.original_height = self.original_image.height
 
         # it will show image which needs to be watermarked screen image
-        self.watermarking_image = ImageTk.PhotoImage(file=image_file)
-        self.image_area_canvas.create_image(0, 0,image=self.watermarking_image, anchor="center")
+        self.watermarking_image = ImageTk.PhotoImage(self.original_image)
+        self.image_on_canvas = self.image_canvas.create_image(0, 0,image=self.watermarking_image, anchor= 'nw')
+
+        self.image_canvas.bind("<MouseWheel>", self.resize_image)
+
+
+    def resize_image(self, event):
+        """this method will zoom in or zoom out the image"""
+
+        if event.num == 4 or event.delta > 0:
+            self.zoom_scale *= 1.1
+
+        elif event.num == 5 or event.delta < 0:
+            self.zoom_scale /= 1.1
+
+        # 1. Cap the maximum zoom at 5.0 (500%)
+        if self.zoom_scale > 5.0:
+            self.zoom_scale = 5.0
+
+        # 2. Cap the minimum zoom at 0.1 (10%)
+        if self.zoom_scale < 0.1:
+            self.zoom_scale = 0.1
+
+
+        new_size = (int(self.original_width * self.zoom_scale), int(self.original_height * self.zoom_scale))
+        resized_image = self.original_image.resize(new_size, Image.Resampling.BILINEAR)
+
+        self.watermarking_image = ImageTk.PhotoImage(resized_image)
+        self.image_canvas.itemconfig(self.image_on_canvas, image=self.watermarking_image)
 
 
 app_window = UserInterface()
