@@ -8,12 +8,15 @@
 
 from tkinter import *
 from tkinter import filedialog
+from turtledemo.sorting_animate import show_text
+
 from PIL import Image, ImageTk
 
 HEADING_TEXT_COLOR = "black"
 WINDOW_WIDTH = 1080
 WINDOW_HEIGHT = 700
-FILE_TYPES = [ ("Image files", "*.jpg *.jpeg *.png *.bmp *.gif"), ("All files", "*.*")]  # Define allowed image file types
+FILE_TYPES = [("Image files", "*.jpg *.jpeg *.png *.bmp *.gif"),
+              ("All files", "*.*")]  # Define allowed image file types
 
 
 class UserInterface(Tk):
@@ -21,8 +24,8 @@ class UserInterface(Tk):
     def __init__(self):
         super().__init__()
 
-
         # this will set the game window center to the screen.
+
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         center_x = int((screen_width / 2) - (WINDOW_WIDTH / 2))
@@ -36,8 +39,6 @@ class UserInterface(Tk):
 
         self.add_home_screen_image()
 
-
-
     def add_home_screen_image(self):
         """this method add background image in home screen"""
 
@@ -49,21 +50,21 @@ class UserInterface(Tk):
         self.home_screen_heading_text()
         self.mainloop()
 
-
     def home_screen_heading_text(self):
         """this method add heading text in home screen"""
 
         # home screen text canvas
-        text_canvas = Canvas(width=490, height=80, bg = "#0D9BC7", highlightthickness = 0)
+        text_canvas = Canvas(width=490, height=80, bg="#0D9BC7", highlightthickness=0)
         text_canvas.place(x=300, y=200)
 
         # heading text
         heading_text = text_canvas.create_text(250, 25, text=f"Make watermark quickly", font=("Arial", 30, "bold"),
-                                               anchor="center", fill= "white")
+                                               anchor="center", fill="white")
 
         # subheading text
-        sub_heading_text = text_canvas.create_text(250, 63, text=f"add watermark to single & several images in a breeze.",
-                                                   font=("Arial", 13, "bold"), fill= "white" )
+        sub_heading_text = text_canvas.create_text(250, 63,
+                                                   text=f"add watermark to single & several images in a breeze.",
+                                                   font=("Arial", 13, "bold"), fill="white")
 
         self.home_screen_button()
 
@@ -72,32 +73,59 @@ class UserInterface(Tk):
 
         # single image button
         single_image_button = Button(self, text="Start Make Watermark", font=("Arial", 12, "bold"), fg="white",
-                                     command=self.display_watermarking_screen, bd=0, bg="#F05A5A", height= 2)
+                                     command=self.display_watermarking_screen, bd=0, bg="#F05A5A", height=2)
         single_image_button.place(x=355, y=300)
 
         # batch image button
         batch_image_button = Button(self, text="Start Batch Watermark", font=("Arial", 12, "bold"), fg="white",
-                                    command=lambda: print("Clicked!"), bd=0, bg="#F05A5A", height= 2)
+                                    command=lambda: print("Clicked!"), bd=0, bg="#F05A5A", height=2)
         batch_image_button.place(x=560, y=300)
-
 
     def display_watermarking_screen(self):
         """this method will load the screen where image is being watermarked."""
 
-        [widget.destroy() for widget in self.winfo_children()]   # this for loop destroy the previous screen all widget
+        [widget.destroy() for widget in self.winfo_children()]  # this for loop destroy the previous screen all widget
 
         # create canvas for image area
-        self.image_canvas = Canvas(width= 800, height=700, bg = "#313131", highlightthickness = 0)
-        self.image_canvas.place(x = 0, y = 0)
+        self.image_canvas = Canvas(width=800, height=700, bg="#313131", highlightthickness=0)
+        self.image_canvas.place(x=0, y=0)
 
         # create canvas for editing widget buttons
         self.image_edit_widget_canvas = Canvas(width=280, height=700, bg="#494949", highlightthickness=0)
-        self.image_edit_widget_canvas.place(x = 800, y = 0)
+        self.image_edit_widget_canvas.place(x=800, y=0)
+
+        self.all_edit_button()
 
         # creating add image button
-        add_image_button = Button(self.image_edit_widget_canvas, text="Select Image", font=("Arial", 12, "bold"), fg="white",
-                                     command=self.open_file_explorer, bd=0, bg="#007aff", width=18,height= 2)
-        add_image_button.place(x = 48, y = 600)
+        add_image_button = Button(self.image_edit_widget_canvas, text="Select Image", font=("Arial", 12, "bold"),
+                                  fg="white",
+                                  command=self.open_file_explorer, bd=0, bg="#007aff", width=18, height=2)
+        add_image_button.place(x=48, y=600)
+
+    def all_edit_button(self):
+        """this method contains all the edit button to edit the watermark text"""
+
+        def capture_text():
+            """this function capture the entered text in entry field and pass that text to display_watermark_text method."""
+
+            received_text = entry_field.get()
+            self.display_watermark_text(received_text)
+
+        # watermark text
+        watermark_text = self.image_edit_widget_canvas.create_text(70, 30, text=f"Water Mark text",
+                                                                   font=("Arial", 10, "bold"), fill="white")
+        # entry field
+        entry_field = Entry(self, font=("Arial", 14), width=17)
+        self.image_edit_widget_canvas.create_window(115, 60,  window=entry_field)
+
+        # watermark text submit btn
+        submit_btn = Button(self, text="->", command = capture_text, width= 3, bg="gray")
+        submit_btn.place(x = 1020, y = 47)
+
+        # getting text
+        watermark_text = entry_field.get()
+        print(watermark_text)
+
 
 
     def open_file_explorer(self):
@@ -109,7 +137,6 @@ class UserInterface(Tk):
         if file_path:
             self.display_image(file_path)
 
-
     def display_image(self, image_file):
         """this method will display image on the screen"""
 
@@ -119,10 +146,10 @@ class UserInterface(Tk):
 
         # it will show image which needs to be watermarked screen image
         self.watermarking_image = ImageTk.PhotoImage(self.original_image)
-        self.image_on_canvas = self.image_canvas.create_image(0, 0,image=self.watermarking_image, anchor= 'nw')
+        self.image_on_canvas = self.image_canvas.create_image(0, 0, image=self.watermarking_image, anchor='nw')
+
 
         self.image_canvas.bind("<MouseWheel>", self.resize_image)
-
 
     def resize_image(self, event):
         """this method will zoom in or zoom out the image"""
@@ -141,7 +168,6 @@ class UserInterface(Tk):
         if self.zoom_scale < 0.1:
             self.zoom_scale = 0.1
 
-
         new_size = (int(self.original_width * self.zoom_scale), int(self.original_height * self.zoom_scale))
         resized_image = self.original_image.resize(new_size, Image.Resampling.BILINEAR)
 
@@ -149,5 +175,25 @@ class UserInterface(Tk):
         self.image_canvas.itemconfig(self.image_on_canvas, image=self.watermarking_image)
 
 
-app_window = UserInterface()
 
+    def display_watermark_text(self, received_text):
+            """this method will display the watermark text on the canvas image area on the screen"""
+
+
+            # watermark text
+            watermark_text = self.image_canvas.create_text(400, 350, text= received_text, font=("Arial", 30, "bold"),
+                                               anchor="center", fill="black")
+
+            def move_text_on_drag(event):
+                "this function will move text on the image anywhere the user wants."
+
+                self.image_canvas.coords(watermark_text, event.x, event.y)
+
+
+            self.image_canvas.tag_bind(watermark_text, "<B1-Motion>", move_text_on_drag)
+
+
+
+
+
+app_window = UserInterface()
