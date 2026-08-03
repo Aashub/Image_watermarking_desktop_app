@@ -18,8 +18,9 @@ WINDOW_HEIGHT = 700
 FILE_TYPES = [("Image files", "*.jpg *.jpeg *.png *.bmp *.gif"),
               ("All files", "*.*")]  # Define allowed image file types
 
-text_align_options = ['Align-Center', 'Bottom-Right-Corner', 'Bottom-Left-Corner', 'Bottom-Center Edge',
-                      'Top-Right-Corner', 'Top-Left-Corner', 'Top-Center Edge', 'Left-Center Edge', 'Right-Center Edge']
+text_align_dictionary = {'Align-Center': [400, 350], 'Bottom-Right-Corner': [800, 675], 'Bottom-Left-Corner': [0, 675],
+                      'Bottom-Center Edge': [400, 675],'Top-Right-Corner': [800, 5], 'Top-Left-Corner': [0, 5],
+                      'Top-Center Edge': [400, 5], 'Left-Center Edge': [0, 350], 'Right-Center Edge': [800, 340]}
 
 
 class UserInterface(Tk):
@@ -117,18 +118,25 @@ class UserInterface(Tk):
         def capture_text():
             """this function capture the entered text in entry field and pass that text to display_watermark_text method."""
 
-            received_text = entry_field.get()
+            received_text = self.entry_field.get()
             self.display_watermark_text(received_text)
 
         # watermark text
         self.image_edit_widget_canvas.create_text(72, 30, text=f"Water Mark text",
                                                   font=("Arial", 10, "bold"), fill="white")
+
+
+        entry_field_frame = Frame(self, width=235, height= 30, bg="white")
+        entry_field_frame.place(x = 822, y = 43)
+
         # entry field
-        entry_field = Entry(self.image_edit_widget_canvas, font=("Arial", 14), width=21)
-        entry_field.place(x=22, y=45)
+        self.entry_field = Entry(entry_field_frame, font=("Arial", 11), width=30, relief="flat")
+        self.entry_field.place(x=0, y=5)
 
         combobox_style = Style()
         combobox_style.configure("Padded.TCombobox", padding=(3, 4))  # (horizontal, vertical)
+
+        text_align_options = [alignment_option for alignment_option in text_align_dictionary]
 
         # creating combobox button
         alignment_options = Combobox(self.image_edit_widget_canvas, values=text_align_options,
@@ -151,9 +159,7 @@ class UserInterface(Tk):
         #
         # self.lock_btn.bind("<Button-1>", self.lock_text_position)
 
-        # getting text
-        watermark_text = entry_field.get()
-        print(watermark_text)
+
 
         # creating add image button
         add_image_button = Button(self.image_edit_widget_canvas, text="Select Image", font=("Arial", 12, "bold"),
@@ -165,9 +171,11 @@ class UserInterface(Tk):
     def display_watermark_text(self, received_text):
         """this method will display the watermark text on the canvas image area on the screen"""
 
+
         # watermark text
-        self.watermark_text = self.image_canvas.create_text(400, 350, text=received_text, font=("Arial", 30, "bold"),
-                                                       anchor="center", fill="black")
+        self.watermark_text = self.image_canvas.create_text(text_align_dictionary["Align-Center"], text=received_text, font=("Arial", 14, "bold"),
+                                                       anchor="nw", fill="black")
+
 
         def move_text_on_drag(event):
             "this function will move text on the image anywhere the user wants."
@@ -190,14 +198,48 @@ class UserInterface(Tk):
 
 
     def on_alignment_selected(self, event):
-        pass
+        """this method is responsible for text alignment in all position on image edges as per the combobox selection"""
 
+        triggered_option = event.widget.get()   # getting selected option from combo box
 
+        for alignment_option in text_align_dictionary:   # this for loop will get the key from dictionary and checks in if condition that triggered option matches with dictionary key or not.
 
+            if triggered_option == alignment_option:
 
+                self.image_canvas.coords(self.watermark_text, text_align_dictionary[alignment_option])  # getting watermark text coordinates
+                text_coord = self.image_canvas.bbox(self.watermark_text)
+
+                text_x1_coord = text_coord[0]
+                text_x2_coord = text_coord[2]
+
+                text_width = text_x2_coord - text_x1_coord # calculating text width
+
+                if triggered_option == "Top-Left-Corner" or triggered_option == "Bottom-Left-Corner" or triggered_option == "Left-Center Edge":
+
+                    text_align_dictionary[alignment_option][0] = text_x1_coord + 9
+                    self.image_canvas.coords(self.watermark_text, text_align_dictionary[alignment_option])
+
+                elif triggered_option == "Top-Right-Corner" or triggered_option == "Bottom-Right-Corner" or triggered_option == "Right-Center Edge":
+
+                    text_align_dictionary[alignment_option][0] = text_align_dictionary[alignment_option][0] - text_width - 9
+                    self.image_canvas.coords(self.watermark_text, text_align_dictionary[alignment_option])
+
+                self.reset_coordinate()
+
+                break
     # ********************************************** ALL EDIT  BUTTON **************************************************
 
     # ******************************************* DISPLAY WATERMARK IMAGE **********************************************
+
+    def reset_coordinate(self):
+        global text_align_dictionary
+
+        text_align_dictionary = {'Align-Center': [400, 350], 'Bottom-Right-Corner': [800, 675],
+                                 'Bottom-Left-Corner': [0, 675],
+                                 'Bottom-Center Edge': [400, 675], 'Top-Right-Corner': [800, 5],
+                                 'Top-Left-Corner': [0, 5],
+                                 'Top-Center Edge': [400, 5], 'Left-Center Edge': [0, 350],
+                                 'Right-Center Edge': [800, 340]}
 
     def open_file_explorer(self):
         """this method will open the file explorer to select the image on which user wants to add watermark."""
