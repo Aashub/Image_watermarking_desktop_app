@@ -144,10 +144,16 @@ class UserInterface(Tk):
                             bg="gray")
         submit_btn.place(x=150, y=80)
 
+        # lock text text
+        # self.lock_btn = Button(self.image_edit_widget_canvas, text="🔒",font=("Arial", 8, "bold"),
+        #                     bg="gray")
+        # self.lock_btn.place(x=130, y=16)
+        #
+        # self.lock_btn.bind("<Button-1>", self.lock_text_position)
+
         # getting text
         watermark_text = entry_field.get()
         print(watermark_text)
-
 
         # creating add image button
         add_image_button = Button(self.image_edit_widget_canvas, text="Select Image", font=("Arial", 12, "bold"),
@@ -160,18 +166,32 @@ class UserInterface(Tk):
         """this method will display the watermark text on the canvas image area on the screen"""
 
         # watermark text
-        watermark_text = self.image_canvas.create_text(400, 350, text=received_text, font=("Arial", 30, "bold"),
+        self.watermark_text = self.image_canvas.create_text(400, 350, text=received_text, font=("Arial", 30, "bold"),
                                                        anchor="center", fill="black")
 
         def move_text_on_drag(event):
             "this function will move text on the image anywhere the user wants."
 
-            self.image_canvas.coords(watermark_text, event.x, event.y)
+            self.image_canvas.coords(self.watermark_text, event.x, event.y)
 
-        self.image_canvas.tag_bind(watermark_text, "<B1-Motion>", move_text_on_drag)
+
+        self.image_canvas.tag_bind(self.watermark_text, "<B1-Motion>", move_text_on_drag)
+
+    def update_text_position(self):
+        """when user shrink the image and increase image size the text on the image also get shrunk with the image."""
+
+        new_width = self.watermarking_image.width()
+        new_height = self.watermarking_image.height()
+
+        x_new_text = new_width // 2
+        y_new_height = new_height // 2
+
+        self.image_canvas.coords(self.watermark_text, x_new_text, y_new_height)
+
 
     def on_alignment_selected(self, event):
         pass
+
 
 
 
@@ -219,10 +239,14 @@ class UserInterface(Tk):
             self.zoom_scale = 0.1
 
         new_size = (int(self.original_width * self.zoom_scale), int(self.original_height * self.zoom_scale))
-        resized_image = self.original_image.resize(new_size, Image.Resampling.BILINEAR)
+        self.resized_image = self.original_image.resize(new_size, Image.Resampling.BILINEAR)
 
-        self.watermarking_image = ImageTk.PhotoImage(resized_image)
+        self.watermarking_image = ImageTk.PhotoImage(self.resized_image)
         self.image_canvas.itemconfig(self.image_on_canvas, image=self.watermarking_image)
+
+
+        self.update_text_position()
+
 
     # ******************************************* DISPLAY WATERMARK IMAGE **********************************************
 
