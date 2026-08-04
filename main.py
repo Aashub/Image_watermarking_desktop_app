@@ -18,9 +18,9 @@ WINDOW_HEIGHT = 700
 FILE_TYPES = [("Image files", "*.jpg *.jpeg *.png *.bmp *.gif"),
               ("All files", "*.*")]  # Define allowed image file types
 
-text_align_dictionary = {'Align-Center': [400, 350], 'Bottom-Right-Corner': [800, 675], 'Bottom-Left-Corner': [0, 675],
-                      'Bottom-Center Edge': [400, 675],'Top-Right-Corner': [800, 5], 'Top-Left-Corner': [0, 5],
-                      'Top-Center Edge': [400, 5], 'Left-Center Edge': [0, 350], 'Right-Center Edge': [800, 340]}
+text_align_options = ['Align-Center', 'Bottom-Right-Corner', 'Bottom-Left-Corner',
+                         'Bottom-Center Edge', 'Top-Right-Corner', 'Top-Left-Corner',
+                         'Top-Center Edge', 'Left-Center Edge', 'Right-Center Edge']
 
 
 class UserInterface(Tk):
@@ -71,7 +71,6 @@ class UserInterface(Tk):
         sub_heading_text = text_canvas.create_text(250, 63,
                                                    text=f"add watermark to single & several images in a breeze.",
                                                    font=("Arial", 13, "bold"), fill="white")
-
         self.home_screen_button()
 
     def home_screen_button(self):
@@ -106,8 +105,6 @@ class UserInterface(Tk):
 
         self.all_edit_button()
 
-
-
     # ****************************************** DISPLAY WATERMARK SCREEN **********************************************
 
     # ********************************************** ALL EDIT  BUTTON **************************************************
@@ -125,9 +122,8 @@ class UserInterface(Tk):
         self.image_edit_widget_canvas.create_text(72, 30, text=f"Water Mark text",
                                                   font=("Arial", 10, "bold"), fill="white")
 
-
-        entry_field_frame = Frame(self, width=235, height= 30, bg="white")
-        entry_field_frame.place(x = 822, y = 43)
+        entry_field_frame = Frame(self, width=235, height=30, bg="white")
+        entry_field_frame.place(x=822, y=43)
 
         # entry field
         self.entry_field = Entry(entry_field_frame, font=("Arial", 11), width=30, relief="flat")
@@ -135,8 +131,6 @@ class UserInterface(Tk):
 
         combobox_style = Style()
         combobox_style.configure("Padded.TCombobox", padding=(3, 4))  # (horizontal, vertical)
-
-        text_align_options = [alignment_option for alignment_option in text_align_dictionary]
 
         # creating combobox button
         alignment_options = Combobox(self.image_edit_widget_canvas, values=text_align_options,
@@ -159,29 +153,27 @@ class UserInterface(Tk):
         #
         # self.lock_btn.bind("<Button-1>", self.lock_text_position)
 
-
-
         # creating add image button
         add_image_button = Button(self.image_edit_widget_canvas, text="Select Image", font=("Arial", 12, "bold"),
                                   fg="white",
                                   command=self.open_file_explorer, bd=0, bg="#007aff", width=18, height=2)
         add_image_button.place(x=48, y=600)
 
-
     def display_watermark_text(self, received_text):
         """this method will display the watermark text on the canvas image area on the screen"""
 
+        text_width = self.watermarking_image.width() // 2
+        text_height = self.watermarking_image.height() // 2
 
         # watermark text
-        self.watermark_text = self.image_canvas.create_text(text_align_dictionary["Align-Center"], text=received_text, font=("Arial", 14, "bold"),
-                                                       anchor="nw", fill="black")
-
+        self.watermark_text = self.image_canvas.create_text(text_width, text_height, text=received_text,
+                                                            font=("Arial", 14, "bold"),
+                                                            anchor="center", fill="black")
 
         def move_text_on_drag(event):
             "this function will move text on the image anywhere the user wants."
 
             self.image_canvas.coords(self.watermark_text, event.x, event.y)
-
 
         self.image_canvas.tag_bind(self.watermark_text, "<B1-Motion>", move_text_on_drag)
 
@@ -196,50 +188,85 @@ class UserInterface(Tk):
 
         self.image_canvas.coords(self.watermark_text, x_new_text, y_new_height)
 
-
     def on_alignment_selected(self, event):
-        """this method is responsible for text alignment in all position on image edges as per the combobox selection"""
 
-        triggered_option = event.widget.get()   # getting selected option from combo box
+        triggered_option = event.widget.get()
 
-        for alignment_option in text_align_dictionary:   # this for loop will get the key from dictionary and checks in if condition that triggered option matches with dictionary key or not.
+        # will get image all four side coordinates
+        image_coord = self.image_canvas.bbox(self.image_on_canvas)
+        image_left_side_coord, image_top_side_coord, image_right_side_coord, image_bottom_side_coord = image_coord
 
-            if triggered_option == alignment_option:
+        image_width = image_right_side_coord - image_left_side_coord  # image width
+        image_height = image_bottom_side_coord - image_top_side_coord  # image height
 
-                self.image_canvas.coords(self.watermark_text, text_align_dictionary[alignment_option])  # getting watermark text coordinates
-                text_coord = self.image_canvas.bbox(self.watermark_text)
+        # will get text all four side coordinates
+        text_coord = self.image_canvas.bbox(self.watermark_text)
+        text_x1, text_y1, text_x2, text_y2 = text_coord
 
-                text_x1_coord = text_coord[0]
-                text_x2_coord = text_coord[2]
+        text_width = text_x2 - text_x1  # text width
+        text_height = text_y2 - text_y1  # text height
 
-                text_width = text_x2_coord - text_x1_coord # calculating text width
+        if "Align-Center" == triggered_option:
 
-                if triggered_option == "Top-Left-Corner" or triggered_option == "Bottom-Left-Corner" or triggered_option == "Left-Center Edge":
+            text_x_cord = image_width // 2
+            text_y_cord = image_height // 2
+            self.image_canvas.coords(self.watermark_text, text_x_cord, text_y_cord)
 
-                    text_align_dictionary[alignment_option][0] = text_x1_coord + 9
-                    self.image_canvas.coords(self.watermark_text, text_align_dictionary[alignment_option])
+        elif triggered_option == "Top-Left-Corner":
 
-                elif triggered_option == "Top-Right-Corner" or triggered_option == "Bottom-Right-Corner" or triggered_option == "Right-Center Edge":
+            text_x_cord = image_left_side_coord + (text_width / 2) + 5
+            text_y_cord = image_top_side_coord + (text_height / 2) + 5
+            self.image_canvas.coords(self.watermark_text, text_x_cord, text_y_cord)
 
-                    text_align_dictionary[alignment_option][0] = text_align_dictionary[alignment_option][0] - text_width - 9
-                    self.image_canvas.coords(self.watermark_text, text_align_dictionary[alignment_option])
+        elif triggered_option == "Bottom-Left-Corner":
 
-                self.reset_coordinate()
+            text_x_cord = image_left_side_coord + (text_width / 2) + 5
+            text_y_cord = image_bottom_side_coord - (text_height / 2) - 5
+            self.image_canvas.coords(self.watermark_text, text_x_cord, text_y_cord)
 
-                break
+        elif triggered_option == "Left-Center Edge":
+
+            text_x_cord = image_left_side_coord + (text_width / 2) + 5
+            text_y_cord = image_height // 2
+            self.image_canvas.coords(self.watermark_text, text_x_cord, text_y_cord)
+
+        elif triggered_option == "Top-Right-Corner":
+
+            text_x_cord = image_right_side_coord - (text_width / 2) - 5
+            text_y_cord = image_top_side_coord + (text_height / 2) + 5
+            self.image_canvas.coords(self.watermark_text, text_x_cord, text_y_cord)
+
+
+        elif triggered_option == "Bottom-Right-Corner":
+
+            text_x_cord = image_right_side_coord - (text_width / 2) - 5
+            text_y_cord = image_bottom_side_coord - (text_height / 2) - 5
+            self.image_canvas.coords(self.watermark_text, text_x_cord, text_y_cord)
+
+        elif triggered_option == "Right-Center Edge":
+
+            text_x_cord = image_right_side_coord - (text_width / 2) - 5
+            text_y_cord = image_height // 2
+            self.image_canvas.coords(self.watermark_text, text_x_cord,
+                                     text_y_cord)  # getting watermark text coordinates
+
+        elif triggered_option == "Top-Center Edge":
+
+            text_x_cord = image_width // 2
+            text_y_cord = image_top_side_coord + (text_height / 2) + 5
+            self.image_canvas.coords(self.watermark_text, text_x_cord,
+                                     text_y_cord)  # getting watermark text coordinates
+
+        elif triggered_option == "Bottom-Center Edge":
+
+            text_x_cord = image_width // 2
+            text_y_cord = image_bottom_side_coord - (text_height / 2) - 5
+            self.image_canvas.coords(self.watermark_text, text_x_cord,
+                                     text_y_cord)  # getting watermark text coordinates
+
     # ********************************************** ALL EDIT  BUTTON **************************************************
 
     # ******************************************* DISPLAY WATERMARK IMAGE **********************************************
-
-    def reset_coordinate(self):
-        global text_align_dictionary
-
-        text_align_dictionary = {'Align-Center': [400, 350], 'Bottom-Right-Corner': [800, 675],
-                                 'Bottom-Left-Corner': [0, 675],
-                                 'Bottom-Center Edge': [400, 675], 'Top-Right-Corner': [800, 5],
-                                 'Top-Left-Corner': [0, 5],
-                                 'Top-Center Edge': [400, 5], 'Left-Center Edge': [0, 350],
-                                 'Right-Center Edge': [800, 340]}
 
     def open_file_explorer(self):
         """this method will open the file explorer to select the image on which user wants to add watermark."""
@@ -259,7 +286,7 @@ class UserInterface(Tk):
 
         # it will show image which needs to be watermarked screen image
         self.watermarking_image = ImageTk.PhotoImage(self.original_image)
-        self.image_on_canvas = self.image_canvas.create_image(0, 0, image=self.watermarking_image, anchor='nw')
+        self.image_on_canvas = self.image_canvas.create_image(400, 350, image=self.watermarking_image, anchor='center')
 
         self.image_canvas.bind("<MouseWheel>", self.resize_image)
 
@@ -286,13 +313,9 @@ class UserInterface(Tk):
         self.watermarking_image = ImageTk.PhotoImage(self.resized_image)
         self.image_canvas.itemconfig(self.image_on_canvas, image=self.watermarking_image)
 
-
         self.update_text_position()
 
-
     # ******************************************* DISPLAY WATERMARK IMAGE **********************************************
-
-
 
 
 app_window = UserInterface()
