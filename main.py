@@ -133,13 +133,13 @@ class UserInterface(Tk):
         combobox_style.configure("Padded.TCombobox", padding=(3, 4))  # (horizontal, vertical)
 
         # creating combobox button
-        alignment_options = Combobox(self.image_edit_widget_canvas, values=text_align_options,
+        self.alignment_options = Combobox(self.image_edit_widget_canvas, values=text_align_options,
                                      font=("Arial", 8, "bold"),
                                      state="readonly", width=16, style="Padded.TCombobox")
-        alignment_options.set('Select Alignment')
-        alignment_options.place(x=22, y=80)
+        self.alignment_options.set('Select Alignment')
+        self.alignment_options.place(x=22, y=80)
 
-        alignment_options.bind("<<ComboboxSelected>>", self.on_alignment_selected)
+        self.alignment_options.bind("<<ComboboxSelected>>", self.on_alignment_selected)
 
         # watermark text submit btn
         submit_btn = Button(self.image_edit_widget_canvas, text="Submit", command=capture_text, width=14,
@@ -177,16 +177,16 @@ class UserInterface(Tk):
 
         self.image_canvas.tag_bind(self.watermark_text, "<B1-Motion>", move_text_on_drag)
 
-    def update_text_position(self):
-        """when user shrink the image and increase image size the text on the image also get shrunk with the image."""
-
-        new_width = self.watermarking_image.width()
-        new_height = self.watermarking_image.height()
-
-        x_new_text = new_width // 2
-        y_new_height = new_height // 2
-
-        self.image_canvas.coords(self.watermark_text, x_new_text, y_new_height)
+    # def update_text_position(self):
+    #     """when user shrink the image and increase image size the text on the image also get shrunk with the image."""
+    #
+    #     new_width = self.watermarking_image.width()
+    #     new_height = self.watermarking_image.height()
+    #
+    #     x_new_text = new_width // 2
+    #     y_new_height = new_height // 2
+    #
+    #     self.image_canvas.coords(self.watermark_text, x_new_text, y_new_height)
 
     def on_alignment_selected(self, event):
 
@@ -194,6 +194,7 @@ class UserInterface(Tk):
 
         # will get image all four side coordinates
         image_coord = self.image_canvas.bbox(self.image_on_canvas)
+        print(f"image cord: {image_coord}")
         image_left_side_coord, image_top_side_coord, image_right_side_coord, image_bottom_side_coord = image_coord
 
         image_width = image_right_side_coord - image_left_side_coord  # image width
@@ -208,8 +209,8 @@ class UserInterface(Tk):
 
         if "Align-Center" == triggered_option:
 
-            text_x_cord = image_width // 2
-            text_y_cord = image_height // 2
+            text_x_cord = image_left_side_coord + (image_width // 2)
+            text_y_cord = image_top_side_coord + (image_height // 2)
             self.image_canvas.coords(self.watermark_text, text_x_cord, text_y_cord)
 
         elif triggered_option == "Top-Left-Corner":
@@ -227,7 +228,7 @@ class UserInterface(Tk):
         elif triggered_option == "Left-Center Edge":
 
             text_x_cord = image_left_side_coord + (text_width / 2) + 5
-            text_y_cord = image_height // 2
+            text_y_cord = image_top_side_coord + (image_height // 2)
             self.image_canvas.coords(self.watermark_text, text_x_cord, text_y_cord)
 
         elif triggered_option == "Top-Right-Corner":
@@ -246,20 +247,20 @@ class UserInterface(Tk):
         elif triggered_option == "Right-Center Edge":
 
             text_x_cord = image_right_side_coord - (text_width / 2) - 5
-            text_y_cord = image_height // 2
+            text_y_cord = image_top_side_coord + (image_height // 2)
             self.image_canvas.coords(self.watermark_text, text_x_cord,
-                                     text_y_cord)  # getting watermark text coordinates
+                                     text_y_cord)
 
         elif triggered_option == "Top-Center Edge":
 
-            text_x_cord = image_width // 2
+            text_x_cord = image_left_side_coord  + (image_width // 2)
             text_y_cord = image_top_side_coord + (text_height / 2) + 5
             self.image_canvas.coords(self.watermark_text, text_x_cord,
-                                     text_y_cord)  # getting watermark text coordinates
+                                     text_y_cord)
 
         elif triggered_option == "Bottom-Center Edge":
 
-            text_x_cord = image_width // 2
+            text_x_cord = image_left_side_coord + (image_width // 2)
             text_y_cord = image_bottom_side_coord - (text_height / 2) - 5
             self.image_canvas.coords(self.watermark_text, text_x_cord,
                                      text_y_cord)  # getting watermark text coordinates
@@ -313,7 +314,7 @@ class UserInterface(Tk):
         self.watermarking_image = ImageTk.PhotoImage(self.resized_image)
         self.image_canvas.itemconfig(self.image_on_canvas, image=self.watermarking_image)
 
-        self.update_text_position()
+
 
     # ******************************************* DISPLAY WATERMARK IMAGE **********************************************
 
