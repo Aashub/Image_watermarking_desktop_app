@@ -39,6 +39,12 @@ class UserInterface(Tk):
         self.resizable(False, False)
         self.title("Image Watermarking Desktop App")
 
+        self.watermark_mode = "alignment"
+        self.current_alignment = "Align-Center"  # default alignment
+
+        self.watermark_rel_x = 0.5  # used only in "free" mode
+        self.watermark_rel_y = 0.5
+
         self.zoom_scale = 1.0
 
         self.add_home_screen_image()
@@ -146,12 +152,6 @@ class UserInterface(Tk):
                             bg="gray")
         submit_btn.place(x=150, y=80)
 
-        # lock text text
-        # self.lock_btn = Button(self.image_edit_widget_canvas, text="🔒",font=("Arial", 8, "bold"),
-        #                     bg="gray")
-        # self.lock_btn.place(x=130, y=16)
-        #
-        # self.lock_btn.bind("<Button-1>", self.lock_text_position)
 
         # creating add image button
         add_image_button = Button(self.image_edit_widget_canvas, text="Select Image", font=("Arial", 12, "bold"),
@@ -159,14 +159,24 @@ class UserInterface(Tk):
                                   command=self.open_file_explorer, bd=0, bg="#007aff", width=18, height=2)
         add_image_button.place(x=48, y=600)
 
+    # ********************************************** ALL EDIT  BUTTON **************************************************
+
+    # ********************************** Display watermark & Align Watermark Position **********************************
+
     def display_watermark_text(self, received_text):
         """this method will display the watermark text on the canvas image area on the screen"""
 
-        text_width = self.watermarking_image.width() // 2
-        text_height = self.watermarking_image.height() // 2
+        image_coord = self.image_canvas.bbox(self.image_on_canvas)
+        image_left_side_coord, image_top_side_coord, image_right_side_coord, image_bottom_side_coord = image_coord
+
+        image_width = image_right_side_coord - image_left_side_coord  # image width
+        image_height = image_bottom_side_coord - image_top_side_coord  # image height
+
+        text_x_cord = image_left_side_coord + (image_width // 2)
+        text_y_cord = image_top_side_coord + (image_height // 2)
 
         # watermark text
-        self.watermark_text = self.image_canvas.create_text(text_width, text_height, text=received_text,
+        self.watermark_text = self.image_canvas.create_text(text_x_cord, text_y_cord, text=received_text,
                                                             font=("Arial", 14, "bold"),
                                                             anchor="center", fill="black")
 
@@ -175,26 +185,47 @@ class UserInterface(Tk):
 
             self.image_canvas.coords(self.watermark_text, event.x, event.y)
 
+
+            image_coord = self.image_canvas.bbox(self.image_on_canvas)
+            image_x1, image_y1, image_x2, image_y2 = image_coord
+
+            image_width = image_x2 - image_x1
+            image_height = image_y2 - image_y1
+
+            # storing watermark relative position so i can be used in free mode.
+            self.watermark_rel_x = (event.x - image_x1) / image_width
+            self.watermark_rel_y = (event.y - image_y1) / image_height
+
+            self.watermark_mode = "free"  # dragging overrides alignment
+
         self.image_canvas.tag_bind(self.watermark_text, "<B1-Motion>", move_text_on_drag)
 
-    # def update_text_position(self):
-    #     """when user shrink the image and increase image size the text on the image also get shrunk with the image."""
-    #
-    #     new_width = self.watermarking_image.width()
-    #     new_height = self.watermarking_image.height()
-    #
-    #     x_new_text = new_width // 2
-    #     y_new_height = new_height // 2
-    #
-    #     self.image_canvas.coords(self.watermark_text, x_new_text, y_new_height)
+    def reposition_watermark_after_resize(self):
+        """this method will align the watermark after resize as per the user used mode between alignment and or free(drag mode) it has used."""
 
-    def on_alignment_selected(self, event):
+        if self.watermark_mode == "alignment":
+            self.on_alignment_selected()  # recompute from stored alignment
 
-        triggered_option = event.widget.get()
+        else:  # here when user used drag mode to position the text as per his desire will align the text according to the image size
+            image_x1, image_y1, image_x2, image_y2 = self.image_canvas.bbox(self.image_on_canvas)
+            image_width = image_x2 - image_x1
+            image_height = image_y2 - image_y1
+
+            new_x = image_x1 + (self.watermark_rel_x * image_width)
+            new_y = image_y1 + (self.watermark_rel_y * image_height)
+            self.image_canvas.coords(self.watermark_text, new_x, new_y)
+
+
+    def on_alignment_selected(self, event = None):
+
+        if event is not None:
+            self.current_alignment = event.widget.get()
+
+        self.watermark_mode = "alignment"    # selecting an option overrides free drag
+        triggered_option = self.current_alignment
 
         # will get image all four side coordinates
         image_coord = self.image_canvas.bbox(self.image_on_canvas)
-        print(f"image cord: {image_coord}")
         image_left_side_coord, image_top_side_coord, image_right_side_coord, image_bottom_side_coord = image_coord
 
         image_width = image_right_side_coord - image_left_side_coord  # image width
@@ -265,7 +296,8 @@ class UserInterface(Tk):
             self.image_canvas.coords(self.watermark_text, text_x_cord,
                                      text_y_cord)  # getting watermark text coordinates
 
-    # ********************************************** ALL EDIT  BUTTON **************************************************
+    # ********************************** Display watermark & Align Watermark Position **********************************
+
 
     # ******************************************* DISPLAY WATERMARK IMAGE **********************************************
 
@@ -313,6 +345,8 @@ class UserInterface(Tk):
 
         self.watermarking_image = ImageTk.PhotoImage(self.resized_image)
         self.image_canvas.itemconfig(self.image_on_canvas, image=self.watermarking_image)
+
+        self.reposition_watermark_after_resize()
 
 
 
