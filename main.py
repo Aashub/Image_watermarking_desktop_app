@@ -35,6 +35,12 @@ class UserInterface(Tk):
         self.resizable(False, False)
         self.title("Image Watermarking Desktop App")
 
+        self.current_font_family = "Arial"
+        self.current_font_size = 14
+        self.current_font_style = "normal"
+
+
+
         self.watermark_mode = "alignment"
         self.current_alignment = "Align-Center"  # default alignment
 
@@ -91,8 +97,6 @@ class UserInterface(Tk):
                                     command=lambda: print("Clicked!"), bd=0, bg="#F05A5A", height=2)
         batch_image_button.place(x=560, y=300)
 
-    # ************************************************ HOME SCREEN *****************************************************
-
     # ****************************************** DISPLAY WATERMARK SCREEN **********************************************
 
     def display_watermarking_screen(self):
@@ -109,8 +113,6 @@ class UserInterface(Tk):
         self.image_edit_widget_canvas.place(x=800, y=0)
 
         self.all_edit_button()
-
-    # ****************************************** DISPLAY WATERMARK SCREEN **********************************************
 
     # ********************************************** ALL EDIT  BUTTON **************************************************
 
@@ -152,36 +154,61 @@ class UserInterface(Tk):
                             bg="gray")
         submit_btn.place(x=150, y=80)
 
-        # creating add image button
-        add_image_button = Button(self.image_edit_widget_canvas, text="Select Image", font=("Arial", 12, "bold"),
-                                  fg="white",
-                                  command=self.open_file_explorer, bd=0, bg="#007aff", width=18, height=2)
-        add_image_button.place(x=48, y=600)
+        # 1. Create a shared Tkinter variable
+        selected_option = StringVar(self.image_edit_widget_canvas, value="Option 1")
+
+        # 2. Create the Radiobutton widgets
+        radio1 = Radiobutton(self.image_edit_widget_canvas, text="Bold", variable=selected_option, value="Option 1",
+                             bg="#494949", fg="white", font=("Arial", 8), activebackground="#494949",
+                             activeforeground="white", selectcolor="#494949",
+                             command=lambda: self.update_font_style("bold"))
+
+        radio2 = Radiobutton(self.image_edit_widget_canvas, text="Itallic", variable=selected_option, value="Option 2",
+                             bg="#494949", fg="white", font=("Arial", 8), activebackground="#494949",
+                             activeforeground="white", selectcolor="#494949",
+                             command=lambda: self.update_font_style("italic"))
+
+        radio3 = Radiobutton(self.image_edit_widget_canvas, text="Underline", variable=selected_option,
+                             value="Option 3",
+                             bg="#494949", fg="white", font=("Arial", 8), activebackground="#494949",
+                             activeforeground="white", selectcolor="#494949",
+                             command=lambda: self.update_font_style("underline"))
+
+        radio4 = Radiobutton(self.image_edit_widget_canvas, text="Regular", variable=selected_option, value="Option 3",
+                             bg="#494949", fg="white", font=("Arial", 8), activebackground="#494949",
+                             activeforeground="white", selectcolor="#494949",
+                             command=lambda: self.update_font_style("regular"))
+
+        # 3. Display the radio button on the screen
+        radio1.place(x=15, y=115)
+        radio2.place(x=65, y=115)
+        radio3.place(x=120, y=115)
+        radio4.place(x=195, y=115)
 
         # font style text
-        self.image_edit_widget_canvas.create_text(53, 134, text=f"Font Style",
+        self.image_edit_widget_canvas.create_text(58, 160, text=f"Font Design",
                                                   font=("Arial", 10, "bold"), fill="white")
 
         # search font entry field
-        self.search_font_style_field = Entry(self.image_edit_widget_canvas, font=("Arial", 8), width=27, relief="flat")
-        self.search_font_style_field.place(x=91, y=126)
+        self.search_font_design_field = Entry(self.image_edit_widget_canvas, font=("Arial", 8), width=25, relief="flat")
+        self.search_font_design_field.place(x=103, y=152)
 
-        self.search_font_style_field.insert(0, "Search font style")  # adds text in search box
+        self.search_font_design_field.insert(0, "Search font style")  # adds text in search box
 
-        self.search_font_style_field.bind("<KeyRelease>", self.search_font_style)  # calls search_font_style method
+        self.search_font_design_field.bind("<KeyRelease>", self.search_font_style)  # calls search_font_style method
 
         # creating listbox for font selection
-        self.select_font_style = Listbox(self.image_edit_widget_canvas, font=("Arial", 8, "bold"), width=39, height=2,
-                                         highlightthickness=0)
-        self.select_font_style.place(x=21, y=148)
+        self.select_font_design = Listbox(self.image_edit_widget_canvas, font=("Arial", 8, "bold"), width=39, height=2,
+                                          highlightthickness=0)
+        self.select_font_design.place(x=21, y=175)
 
         # Font Color text
-        self.image_edit_widget_canvas.create_text(55, 200, text=f"Font Color",
+        self.image_edit_widget_canvas.create_text(55, 230, text=f"Font Color",
                                                   font=("Arial", 10, "bold"), fill="white")
 
         # search font color field
-        self.search_font_color_field = Entry(self.image_edit_widget_canvas, font=("Arial", 8), width=26, relief="flat")
-        self.search_font_color_field.place(x=96, y=190)
+        self.search_font_color_field = Entry(self.image_edit_widget_canvas, font=("Arial", 8), width=25, relief="flat")
+        self.search_font_color_field.place(x=102, y=220)
 
         self.search_font_color_field.insert(0, "Search font color")  # adds text in search box
 
@@ -190,31 +217,45 @@ class UserInterface(Tk):
         # creating listbox for font selection
         self.select_font_color = Listbox(self.image_edit_widget_canvas, font=("Arial", 8, "bold"), width=39, height=2,
                                          highlightthickness=0)
-        self.select_font_color.place(x=21, y=213)
+        self.select_font_color.place(x=20, y=243)
 
         # Font Size text
-        self.image_edit_widget_canvas.create_text(50, 275, text=f"Font Size",
+        self.image_edit_widget_canvas.create_text(50, 300, text=f"Font Size",
                                                   font=("Arial", 10, "bold"), fill="white")
 
-        # create Scale widget
-        v1 = DoubleVar()
-        self.font_size_scaler = Scale(self.image_edit_widget_canvas, variable=v1, from_=1, to=100, orient="horizontal",
-                                      length=230, command= self.increase_font_size)
-        self.font_size_scaler.place(x=20, y=290)
+        # create font size Scale widget
+        for_font_size = DoubleVar()
+        self.font_size_scaler = Scale(self.image_edit_widget_canvas, variable=for_font_size, from_=1, to=100,
+                                      orient="horizontal", length=236, width=10, bg="#494949", highlightthickness=0,
+                                      foreground="white", activebackground="#494949",
+                                      sliderrelief="flat", sliderlength=15, command=self.increase_font_size)
+        self.font_size_scaler.place(x=18, y=310)
 
         # Opacity text
-        self.image_edit_widget_canvas.create_text(46, 350, text=f"Opacity",
+        self.image_edit_widget_canvas.create_text(43, 370, text=f"Opacity",
                                                   font=("Arial", 10, "bold"), fill="white")
 
+        # create opacity Scale widget
+        for_opacity = DoubleVar()
+        self.opacity_scaler = Scale(self.image_edit_widget_canvas, variable=for_font_size, from_=1, to=100,
+                                    orient="horizontal", length=236, width=10, bg="#494949", highlightthickness=0,
+                                    foreground="white", activebackground="#494949",
+                                    sliderrelief="flat", sliderlength=15, command=self.increase_font_size)
+        self.opacity_scaler.place(x=19, y=382)
+
         # Rotation (°) text
-        self.image_edit_widget_canvas.create_text(56, 360, text=f"Rotation (°)",
+        self.image_edit_widget_canvas.create_text(56, 500, text=f"Rotation (°)",
                                                   font=("Arial", 10, "bold"), fill="white")
 
         # Preset Management text
-        self.image_edit_widget_canvas.create_text(86, 400, text=f"Preset Management",
+        self.image_edit_widget_canvas.create_text(86, 600, text=f"Preset Management",
                                                   font=("Arial", 10, "bold"), fill="white")
 
-    # ********************************************** ALL EDIT  BUTTON **************************************************
+        # creating add image button
+        add_image_button = Button(self.image_edit_widget_canvas, text="Select Image", font=("Arial", 12, "bold"),
+                                  fg="white",
+                                  command=self.open_file_explorer, bd=0, bg="#007aff", width=18, height=2)
+        add_image_button.place(x=48, y=600)
 
     # ********************************** Display watermark & Align Watermark Position **********************************
 
@@ -232,7 +273,8 @@ class UserInterface(Tk):
 
         # watermark text
         self.watermark_text = self.image_canvas.create_text(text_x_cord, text_y_cord, text=received_text,
-                                                            font=("Arial", 14, "bold"),
+                                                            font=(self.current_font_family, self.current_font_size,
+                                                                  self.current_font_style),
                                                             anchor="center", fill="black")
 
         def move_text_on_drag(event):
@@ -349,7 +391,16 @@ class UserInterface(Tk):
             self.image_canvas.coords(self.watermark_text, text_x_cord,
                                      text_y_cord)  # getting watermark text coordinates
 
-    # ********************************** Display watermark & Align Watermark Position **********************************
+    # *********************************************** Update Font Style  ***********************************************
+
+    def update_font_style(self, selected_font_style):
+
+        if selected_font_style == "regular":
+            self.current_font_style = "normal"
+        else:
+            self.current_font_style = selected_font_style
+
+        self.image_canvas.itemconfig(self.watermark_text,font=(self.current_font_family,self.current_font_size,self.current_font_style))
 
     # *********************************************** Select Font Style  ***********************************************
 
@@ -358,7 +409,7 @@ class UserInterface(Tk):
 
         searched_font = []
 
-        font_style_entered = self.search_font_style_field.get()
+        font_style_entered = self.search_font_design_field.get()
 
         if font_style_entered != "Search font style" and len(
                 font_style_entered) >= 1:  # this condition will prevent the font color fields to hide immediately and hides when the font style is size more than one and text be different than the condition
@@ -367,8 +418,7 @@ class UserInterface(Tk):
             self.select_font_color.place_forget()
             self.font_size_scaler.place_forget()
 
-
-            if  font_style_entered == "":
+            if font_style_entered == "":
                 pass
 
             else:
@@ -381,74 +431,73 @@ class UserInterface(Tk):
 
             self.display_matched_font_styles(searched_font)
 
-        elif len(font_style_entered) == 0: # this condition will make sure when user text in search field is zero than it will show no font style and
+        elif len(
+                font_style_entered) == 0:  # this condition will make sure when user text in search field is zero than it will show no font style and
 
             searched_font = []
             self.display_matched_font_styles(searched_font)
-            self.select_font_style.config(height=2)
-
+            self.select_font_design.config(height=2)
 
     def display_matched_font_styles(self, matched_font_style):
         """this method will display all the matched fonts in the GUI so that user can later select whichever font he wants to use."""
 
-        self.select_font_style.delete(0, END)  # deletes any current font in the listbox
+        self.select_font_design.delete(0, END)  # deletes any current font in the listbox
 
-        self.select_font_style.config(
+        self.select_font_design.config(
             height=len(matched_font_style))  # creates listbox size as per the matched font result
 
         for font_style in matched_font_style:
-            self.select_font_style.insert(END,
-                                          font_style)  # here we are adding all the matched font style in the listbox.
+            self.select_font_design.insert(END,
+                                           font_style)  # here we are adding all the matched font style in the listbox.
 
-        self.select_font_style.bind("<<ListboxSelect>>", self.apply_font_style)
+        self.select_font_design.bind("<<ListboxSelect>>", self.apply_font_style)
 
         # separately, decide whether color fields should show or hide
         if len(matched_font_style) <= 2:
-            self.search_font_color_field.place(x=96, y=190)
-            self.select_font_color.place(x=21, y=213)
-            self.font_size_scaler.place(x=20, y=290)
+            self.search_font_color_field.place(x=102, y=220)
+            self.select_font_color.place(x=20, y=243)
+            self.font_size_scaler.place(x=18, y=310)
         else:
             self.search_font_color_field.place_forget()
             self.select_font_color.place_forget()
             self.font_size_scaler.place_forget()
 
-
     def apply_font_style(self, event):
         """this method is responsible for applying the font style to the watermark text"""
 
-        selected_font_style = self.select_font_style.curselection()  # Returns a tuple containing the index of the selected font.
+        selected_font_style = self.select_font_design.curselection()  # Returns a tuple containing the index of the selected font.
 
         if not selected_font_style:
             return
 
-        self.current_font_style = self.select_font_style.get(
+        self.current_font_style = self.select_font_design.get(
             selected_font_style[0])  # Retrieve the font name using the selected index.
 
-        self.search_font_style_field.delete(0,
-                                            END)  # once the user has retrieved the font it will delete the all fonts in the listbox.
-        self.search_font_style_field.insert(0, self.current_font_style)  # this will insert the selected font in the search box
+        self.search_font_design_field.delete(0,
+                                             END)  # once the user has retrieved the font it will delete the all fonts in the listbox.
+        self.search_font_design_field.insert(0,
+                                             self.current_font_style)  # this will insert the selected font in the search box
 
         # Collapse the listbox
-        self.select_font_style.config(height=2)
-        self.select_font_style.delete(0, END)
+        self.select_font_design.config(height=2)
+        self.select_font_design.delete(0, END)
 
         self.image_canvas.itemconfig(self.watermark_text,
-                                     font=(self.current_font_style, 14))  # applying new font style to the watermark text.
+                                     font=(self.current_font_style,
+                                           14))  # applying new font style to the watermark text.
 
-        self.search_font_color_field.place(x=96, y=190)
-        self.select_font_color.place(x=21, y=213)
-        self.font_size_scaler.place(x=20, y=290)
-
-    # *********************************************** Select Font Style ************************************************
+        self.search_font_color_field.place(x=102, y=220)
+        self.select_font_color.place(x=20, y=243)
+        self.font_size_scaler.place(x=18, y=310)
 
     # *********************************************** Select Font Color ************************************************
 
     def search_font_color(self, event):
         """this method checks searched font color from the font color list and append the fonts which matches with the searched fonts"""
 
-
         font_color_entered = self.search_font_color_field.get()
-        if font_color_entered != "Search font color" and len(font_color_entered) >= 1:  # this condition will prevent the font color fields to hide immediately and hides when the font style is size more than one and text be different than the condition
+        if font_color_entered != "Search font color" and len(
+                font_color_entered) >= 1:  # this condition will prevent the font color fields to hide immediately and hides when the font style is size more than one and text be different than the condition
 
             self.font_size_scaler.place_forget()
 
@@ -472,7 +521,8 @@ class UserInterface(Tk):
 
             self.display_matched_font_colors(searched_font_color)
 
-        elif len(font_color_entered) == 0: # this condition will make sure when user text in search field is zero than it will show no font style and
+        elif len(
+                font_color_entered) == 0:  # this condition will make sure when user text in search field is zero than it will show no font style and
 
             searched_font = []
             self.display_matched_font_colors(searched_font)
@@ -493,10 +543,9 @@ class UserInterface(Tk):
 
         self.select_font_color.bind("<<ListboxSelect>>", self.apply_font_color)
 
-
         # separately, decide whether color fields should show or hide
         if len(matched_font_color) <= 4:
-            self.font_size_scaler.place(x=20, y=290)
+            self.font_size_scaler.place(x=18, y=310)
         else:
             self.font_size_scaler.place_forget()
 
@@ -523,20 +572,18 @@ class UserInterface(Tk):
         self.image_canvas.itemconfig(self.watermark_text,
                                      fill=selected_color)  # applying new font style to the watermark text.
 
-        self.font_size_scaler.place(x=20, y=290)
+        self.font_size_scaler.place(x=18, y=310)
 
     # ********************************************** Increase Font Size ************************************************
 
     def increase_font_size(self, font_size):
         """this method will increase the font size."""
-        self.font_size_scaler.place(x=20, y=290)
 
         self.image_canvas.itemconfig(self.watermark_text,
-                                     font=(self.current_font_style, font_size))  # applying new font style to the watermark text.
+                                     font=(self.current_font_style,
+                                           font_size))  # applying new font style to the watermark text.
 
-
-    # ********************************************** Increase Font Size ************************************************
-
+        self.reposition_watermark_after_resize()
 
     # *********************************************** Select Font Color ************************************************
 
@@ -588,8 +635,6 @@ class UserInterface(Tk):
         self.image_canvas.itemconfig(self.image_on_canvas, image=self.watermarking_image)
 
         self.reposition_watermark_after_resize()
-
-    # ******************************************* DISPLAY WATERMARK IMAGE **********************************************
 
 
 app_window = UserInterface()

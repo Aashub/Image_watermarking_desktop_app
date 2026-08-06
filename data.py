@@ -32,3 +32,4 @@ watermark_colors = [
     "whitesmoke", "gainsboro", "slategray", "lightslategray", "dimgray",
     "gray20", "gray30", "gray40", "gray50", "gray60", "gray70", "gray80", "gray90",
 ]
+
