@@ -47,7 +47,7 @@ class UserInterface(Tk):
 
         self.zoom_scale = 1.0
 
-        self.font_styles = list(font.families())
+        self.font_designs = list(font.families())
         self.watermark_colors = watermark_colors
 
         self.add_home_screen_image()
@@ -198,7 +198,7 @@ class UserInterface(Tk):
 
         self.search_font_design_field.insert(0, "Search font style")  # adds text in search box
 
-        self.search_font_design_field.bind("<KeyRelease>", self.search_font_style)  # calls search_font_style method
+        self.search_font_design_field.bind("<KeyRelease>", self.search_font_design)  # calls search_font_style method
 
         # creating listbox for font selection
         self.select_font_design = Listbox(self.image_edit_widget_canvas, font=("Arial", 8, "bold"), width=39, height=2,
@@ -452,57 +452,57 @@ class UserInterface(Tk):
 
     # *********************************************** Select Font Style  ***********************************************
 
-    def search_font_style(self, event):
+    def search_font_design(self, event):
         """this method checks searched font with the font list and append the fonts which matches with the searched fonts"""
 
         searched_font = []
 
-        font_style_entered = self.search_font_design_field.get()
+        font_design_entered = self.search_font_design_field.get()
 
-        if font_style_entered != "Search font style" and len(
-                font_style_entered) >= 1:  # this condition will prevent the font color fields to hide immediately and hides when the font style is size more than one and text be different than the condition
+        if font_design_entered != "Search font style" and len(
+                font_design_entered) >= 1:  # this condition will prevent the font color fields to hide immediately and hides when the font style is size more than one and text be different than the condition
 
             self.search_font_color_field.place_forget()
             self.select_font_color.place_forget()
             self.font_size_scaler.place_forget()
 
-            if font_style_entered == "":
+            if font_design_entered == "":
                 pass
 
             else:
                 searched_font = []
 
-                for font_style in self.font_styles:  # this for loop will check the searched font with all font and append the fonts which are matching
+                for font_design in self.font_designs:  # this for loop will check the searched font with all font and append the fonts which are matching
 
-                    if font_style_entered.lower() in font_style.lower():
-                        searched_font.append(font_style)
+                    if font_design_entered.lower() in font_design.lower():
+                        searched_font.append(font_design)
 
-            self.display_matched_font_styles(searched_font)
+            self.display_matched_font_design(searched_font)
 
-        elif len(
-                font_style_entered) == 0:  # this condition will make sure when user text in search field is zero than it will show no font style and
+        elif len(font_design_entered) == 0:  # this condition will make sure when user text in search field is zero than it will show no font style and
 
             searched_font = []
-            self.display_matched_font_styles(searched_font)
+            self.display_matched_font_design(searched_font)
             self.select_font_design.config(height=2)
 
-    def display_matched_font_styles(self, matched_font_style):
+    def display_matched_font_design(self, matched_font_design):
         """this method will display all the matched fonts in the GUI so that user can later select whichever font he wants to use."""
 
         self.select_font_design.delete(0, END)  # deletes any current font in the listbox
 
-        if len(matched_font_style) == 0:
+        if len(matched_font_design) == 0:
             self.select_font_design.config(height=2)
 
-        self.select_font_design.config(height=len(matched_font_style))  # creates listbox size as per the matched font result
+        elif len(matched_font_design) != 0:
+            self.select_font_design.config(height=len(matched_font_design))  # creates listbox size as per the matched font result
 
-        for font_style in matched_font_style:
-            self.select_font_design.insert(END,font_style)  # here we are adding all the matched font style in the listbox.
+        for font_design in matched_font_design:
+            self.select_font_design.insert(END,font_design)  # here we are adding all the matched font style in the listbox.
 
-        self.select_font_design.bind("<<ListboxSelect>>", self.apply_font_style)
+        self.select_font_design.bind("<<ListboxSelect>>", self.apply_font_design)
 
         # separately, decide whether color fields should show or hide
-        if len(matched_font_style) <= 2:
+        if len(matched_font_design) <= 2:
             self.search_font_color_field.place(x=102, y=220)
             self.select_font_color.place(x=20, y=243)
             self.font_size_scaler.place(x=18, y=310)
@@ -511,29 +511,27 @@ class UserInterface(Tk):
             self.select_font_color.place_forget()
             self.font_size_scaler.place_forget()
 
-    def apply_font_style(self, event):
+    def apply_font_design(self, event):
         """this method is responsible for applying the font style to the watermark text"""
 
-        selected_font_style = self.select_font_design.curselection()  # Returns a tuple containing the index of the selected font.
+        selected_font_design = self.select_font_design.curselection()  # Returns a tuple containing the index of the selected font.
 
-        if not selected_font_style:
+        if not selected_font_design:
             return
 
-        self.current_font_style = self.select_font_design.get(
-            selected_font_style[0])  # Retrieve the font name using the selected index.
+        self.current_font_design = self.select_font_design.get(
+            selected_font_design[0])  # Retrieve the font name using the selected index.
 
-        self.search_font_design_field.delete(0,
-                                             END)  # once the user has retrieved the font it will delete the all fonts in the listbox.
-        self.search_font_design_field.insert(0,
-                                             self.current_font_style)  # this will insert the selected font in the search box
+        self.search_font_design_field.delete(0, END)  # once the user has retrieved the font it will delete the all fonts in the listbox.
+        self.search_font_design_field.insert(0, self.current_font_design)  # this will insert the selected font in the search box
 
         # Collapse the listbox
         self.select_font_design.config(height=2)
         self.select_font_design.delete(0, END)
 
-        self.image_canvas.itemconfig(self.watermark_text,
-                                     font=(self.current_font_style,
-                                           14))  # applying new font style to the watermark text.
+        self.image_canvas.itemconfig(self.watermark_text, font=(self.current_font_design, 14))  # applying new font style to the watermark text.
+
+        self.current_font_family = self.current_font_design
 
         self.search_font_color_field.place(x=102, y=220)
         self.select_font_color.place(x=20, y=243)
@@ -629,8 +627,10 @@ class UserInterface(Tk):
         """this method will increase the font size."""
 
         self.image_canvas.itemconfig(self.watermark_text,
-                                     font=(self.current_font_style,
+                                     font=(self.current_font_design,
                                            font_size))  # applying new font style to the watermark text.
+
+
 
         self.reposition_watermark_after_resize()
 
