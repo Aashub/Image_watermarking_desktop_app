@@ -443,8 +443,10 @@ class UserInterface(Tk):
 
         self.select_font_design.delete(0, END)  # deletes any current font in the listbox
 
-        self.select_font_design.config(
-            height=len(matched_font_style))  # creates listbox size as per the matched font result
+        if len(matched_font_style) == 0:
+            self.select_font_design.config(height=2)
+
+        self.select_font_design.config(height=len(matched_font_style))  # creates listbox size as per the matched font result
 
         for font_style in matched_font_style:
             self.select_font_design.insert(END,
