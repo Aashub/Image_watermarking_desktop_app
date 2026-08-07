@@ -37,8 +37,6 @@ class UserInterface(Tk):
 
         self.current_font_family = "Arial"
         self.current_font_size = 14
-        self.current_font_style = "normal"
-
 
 
         self.watermark_mode = "alignment"
@@ -174,16 +172,21 @@ class UserInterface(Tk):
                              activeforeground="white", selectcolor="#494949",
                              command=lambda: self.update_font_style("underline"))
 
-        radio4 = Radiobutton(self.image_edit_widget_canvas, text="Regular", variable=selected_option, value="Option 3",
+        radio4 = Radiobutton(self.image_edit_widget_canvas, text="reset", variable=selected_option, value="Option 4",
                              bg="#494949", fg="white", font=("Arial", 8), activebackground="#494949",
                              activeforeground="white", selectcolor="#494949",
-                             command=lambda: self.update_font_style("regular"))
+                             command=lambda: self.update_font_style("reset"))
 
         # 3. Display the radio button on the screen
         radio1.place(x=15, y=115)
-        radio2.place(x=65, y=115)
-        radio3.place(x=120, y=115)
-        radio4.place(x=195, y=115)
+        radio2.place(x=70, y=115)
+        radio3.place(x=130, y=115)
+        radio4.place(x=207, y=115)
+
+        self.bind("<Control-b>", self.make_text_bold)
+        self.bind("<Control-i>", self.make_text_italic)
+        self.bind("<Control-u>", self.make_text_underline)
+        self.bind("<Control-r>", self.make_text_normal)
 
         # font style text
         self.image_edit_widget_canvas.create_text(58, 160, text=f"Font Design",
@@ -271,11 +274,12 @@ class UserInterface(Tk):
         text_x_cord = image_left_side_coord + (image_width // 2)
         text_y_cord = image_top_side_coord + (image_height // 2)
 
+
         # watermark text
         self.watermark_text = self.image_canvas.create_text(text_x_cord, text_y_cord, text=received_text,
-                                                            font=(self.current_font_family, self.current_font_size,
-                                                                  self.current_font_style),
+                                                            font=(self.current_font_family,self.current_font_size),
                                                             anchor="center", fill="black")
+
 
         def move_text_on_drag(event):
             "this function will move text on the image anywhere the user wants."
@@ -395,12 +399,56 @@ class UserInterface(Tk):
 
     def update_font_style(self, selected_font_style):
 
-        if selected_font_style == "regular":
+        if selected_font_style == "reset":
             self.current_font_style = "normal"
         else:
             self.current_font_style = selected_font_style
 
         self.image_canvas.itemconfig(self.watermark_text,font=(self.current_font_family,self.current_font_size,self.current_font_style))
+
+        self.bind("<Control-b>", self.make_text_bold)
+        self.bind("<Control-i>", self.make_text_italic)
+        self.bind("<Control-u>", self.make_text_underline)
+        self.bind("<Control-r>", self.make_text_normal)
+
+    def make_text_bold(self, event):
+
+        current_font_specs = self.image_canvas.itemcget(self.watermark_text, "font")
+
+        actual_font = font.Font(font=current_font_specs)
+        actual_font.configure(weight="bold")
+
+        self.image_canvas.itemconfig(self.watermark_text, font =  actual_font)
+
+    def make_text_italic(self, event):
+
+        current_font_specs = self.image_canvas.itemcget(self.watermark_text, "font")
+
+        actual_font = font.Font(font=current_font_specs)
+        actual_font.configure(slant="italic")
+
+        self.image_canvas.itemconfig(self.watermark_text, font =  actual_font)
+
+
+    def make_text_underline(self, event):
+
+        current_font_specs = self.image_canvas.itemcget(self.watermark_text, "font")
+
+        actual_font = font.Font(font=current_font_specs)
+        actual_font.configure(underline=True)
+
+        self.image_canvas.itemconfig(self.watermark_text, font =  actual_font)
+
+    def make_text_normal(self, event):
+
+        current_font_specs = self.image_canvas.itemcget(self.watermark_text, "font")
+
+        actual_font = font.Font(font=current_font_specs)
+        actual_font.configure(weight="normal")
+
+        self.image_canvas.itemconfig(self.watermark_text, font =  actual_font)
+
+
 
     # *********************************************** Select Font Style  ***********************************************
 
@@ -449,8 +497,7 @@ class UserInterface(Tk):
         self.select_font_design.config(height=len(matched_font_style))  # creates listbox size as per the matched font result
 
         for font_style in matched_font_style:
-            self.select_font_design.insert(END,
-                                           font_style)  # here we are adding all the matched font style in the listbox.
+            self.select_font_design.insert(END,font_style)  # here we are adding all the matched font style in the listbox.
 
         self.select_font_design.bind("<<ListboxSelect>>", self.apply_font_style)
 
