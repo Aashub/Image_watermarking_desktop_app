@@ -452,6 +452,19 @@ class UserInterface(Tk):
 
     # *********************************************** Select Font Style  ***********************************************
 
+    def hide_widgets(self, *widgets):
+        """this method will hide the widget which are appearing on top of search result when user search something in search box"""
+
+        for widget in widgets:
+            widget.place_forget()
+
+    def make_widgets_reappear(self, *widgets_with_cords):
+        """this method will make widgets reappear if listbox height are at certain level."""
+
+        for widget, x, y in widgets_with_cords:
+            widget.place(x = x, y = y)
+
+
     def search_font_design(self, event):
         """this method checks searched font with the font list and append the fonts which matches with the searched fonts"""
 
@@ -462,9 +475,7 @@ class UserInterface(Tk):
         if font_design_entered != "Search font style" and len(
                 font_design_entered) >= 1:  # this condition will prevent the font color fields to hide immediately and hides when the font style is size more than one and text be different than the condition
 
-            self.search_font_color_field.place_forget()
-            self.select_font_color.place_forget()
-            self.font_size_scaler.place_forget()
+            self.hide_widgets(self.search_font_color_field, self.select_font_color, self.font_size_scaler)
 
             if font_design_entered == "":
                 pass
@@ -503,13 +514,13 @@ class UserInterface(Tk):
 
         # separately, decide whether color fields should show or hide
         if len(matched_font_design) <= 2:
-            self.search_font_color_field.place(x=102, y=220)
-            self.select_font_color.place(x=20, y=243)
-            self.font_size_scaler.place(x=18, y=310)
+
+            self.make_widgets_reappear((self.search_font_color_field, 102, 220), (self.select_font_color, 20, 243),(self.font_size_scaler, 18, 310))
+
         else:
-            self.search_font_color_field.place_forget()
-            self.select_font_color.place_forget()
-            self.font_size_scaler.place_forget()
+
+            self.hide_widgets(self.search_font_color_field, self.select_font_color, self.font_size_scaler)
+
 
     def apply_font_design(self, event):
         """this method is responsible for applying the font style to the watermark text"""
@@ -533,9 +544,8 @@ class UserInterface(Tk):
 
         self.current_font_family = self.current_font_design
 
-        self.search_font_color_field.place(x=102, y=220)
-        self.select_font_color.place(x=20, y=243)
-        self.font_size_scaler.place(x=18, y=310)
+        self.make_widgets_reappear((self.search_font_color_field, 102,220), (self.select_font_color, 20, 243), (self.font_size_scaler,18, 310))
+
 
     # *********************************************** Select Font Color ************************************************
 
@@ -546,7 +556,7 @@ class UserInterface(Tk):
         if font_color_entered != "Search font color" and len(
                 font_color_entered) >= 1:  # this condition will prevent the font color fields to hide immediately and hides when the font style is size more than one and text be different than the condition
 
-            self.font_size_scaler.place_forget()
+            self.hide_widgets(self.font_size_scaler)
 
             searched_font_color = []
 
@@ -568,8 +578,7 @@ class UserInterface(Tk):
 
             self.display_matched_font_colors(searched_font_color)
 
-        elif len(
-                font_color_entered) == 0:  # this condition will make sure when user text in search field is zero than it will show no font style and
+        elif len(font_color_entered) == 0:  # this condition will make sure when user text in search field is zero than it will show no font style and
 
             searched_font = []
             self.display_matched_font_colors(searched_font)
@@ -592,9 +601,12 @@ class UserInterface(Tk):
 
         # separately, decide whether color fields should show or hide
         if len(matched_font_color) <= 4:
-            self.font_size_scaler.place(x=18, y=310)
+
+            self.make_widgets_reappear((self.font_size_scaler, 18, 310))
+
         else:
-            self.font_size_scaler.place_forget()
+            self.hide_widgets(self.font_size_scaler)
+
 
     def apply_font_color(self, event):
         """this method is responsible for applying the font color to the watermark text"""
@@ -619,18 +631,20 @@ class UserInterface(Tk):
         self.image_canvas.itemconfig(self.watermark_text,
                                      fill=selected_color)  # applying new font style to the watermark text.
 
-        self.font_size_scaler.place(x=18, y=310)
+
+        self.make_widgets_reappear((self.font_size_scaler, 18, 310))
 
     # ********************************************** Increase Font Size ************************************************
 
     def increase_font_size(self, font_size):
         """this method will increase the font size."""
 
-        self.image_canvas.itemconfig(self.watermark_text,
-                                     font=(self.current_font_design,
-                                           font_size))  # applying new font style to the watermark text.
+        if not hasattr(self, "current_font_design"):
+            self.current_font_design = "Arial"
 
 
+        # applying new font style to the watermark text.
+        self.image_canvas.itemconfig(self.watermark_text, font=(self.current_font_design, font_size))
 
         self.reposition_watermark_after_resize()
 
