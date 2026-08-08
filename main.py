@@ -1,10 +1,3 @@
-"""Home Screen"""
-
-# Single Image / Add Files: Upload a single image to watermark quickly.
-# Batch Processing: Watermark many images at the same time.
-# Templates / Presets: Load saved watermark styles and positions.
-# cloud sync to upload the watermarked image and watermark style and position to the cloud storage
-
 
 from tkinter import *
 from tkinter import filedialog, font
@@ -26,6 +19,9 @@ class UserInterface(Tk):
 
         # this will set the game window center to the screen.
 
+        self.font_style = "normal"
+        self.received_text = None
+        self.scaled_font_size = 8
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         center_x = int((screen_width / 2) - (WINDOW_WIDTH / 2))
@@ -37,7 +33,6 @@ class UserInterface(Tk):
 
         self.current_font_family = "Arial"
         self.current_font_size = 14
-
 
         self.watermark_mode = "alignment"
         self.current_alignment = "Align-Center"  # default alignment
@@ -120,10 +115,10 @@ class UserInterface(Tk):
         def capture_text():
             """this function capture the entered text in entry field and pass that text to display_watermark_text method."""
 
-            received_text = self.entry_field.get()
-            self.display_watermark_text(received_text)
+            self.received_text = self.entry_field.get()
+            self.display_watermark_text(self.received_text)
 
-        # watermark text
+            # watermark text
         self.image_edit_widget_canvas.create_text(72, 30, text=f"Water Mark text",
                                                   font=("Arial", 10, "bold"), fill="white")
 
@@ -157,23 +152,23 @@ class UserInterface(Tk):
 
         # 2. Create the Radiobutton widgets
         radio1 = Radiobutton(self.image_edit_widget_canvas, text="Bold", variable=selected_option, value="Option 1",
-                             bg="#494949", fg="white", font=("Arial", 8), activebackground="#494949",
+                             bg="#494949", fg="white", font=("Arial", self.scaled_font_size), activebackground="#494949",
                              activeforeground="white", selectcolor="#494949",
                              command=lambda: self.update_font_style("bold"))
 
         radio2 = Radiobutton(self.image_edit_widget_canvas, text="Itallic", variable=selected_option, value="Option 2",
-                             bg="#494949", fg="white", font=("Arial", 8), activebackground="#494949",
+                             bg="#494949", fg="white", font=("Arial", self.scaled_font_size), activebackground="#494949",
                              activeforeground="white", selectcolor="#494949",
                              command=lambda: self.update_font_style("italic"))
 
         radio3 = Radiobutton(self.image_edit_widget_canvas, text="Underline", variable=selected_option,
                              value="Option 3",
-                             bg="#494949", fg="white", font=("Arial", 8), activebackground="#494949",
+                             bg="#494949", fg="white", font=("Arial", self.scaled_font_size), activebackground="#494949",
                              activeforeground="white", selectcolor="#494949",
                              command=lambda: self.update_font_style("underline"))
 
         radio4 = Radiobutton(self.image_edit_widget_canvas, text="reset", variable=selected_option, value="Option 4",
-                             bg="#494949", fg="white", font=("Arial", 8), activebackground="#494949",
+                             bg="#494949", fg="white", font=("Arial", self.scaled_font_size), activebackground="#494949",
                              activeforeground="white", selectcolor="#494949",
                              command=lambda: self.update_font_style("reset"))
 
@@ -234,31 +229,41 @@ class UserInterface(Tk):
                                       sliderrelief="flat", sliderlength=15, command=self.increase_font_size)
         self.font_size_scaler.place(x=18, y=310)
 
-        # Opacity text
-        self.image_edit_widget_canvas.create_text(43, 370, text=f"Opacity",
-                                                  font=("Arial", 10, "bold"), fill="white")
-
-        # create opacity Scale widget
-        for_opacity = DoubleVar()
-        self.opacity_scaler = Scale(self.image_edit_widget_canvas, variable=for_font_size, from_=1, to=100,
-                                    orient="horizontal", length=236, width=10, bg="#494949", highlightthickness=0,
-                                    foreground="white", activebackground="#494949",
-                                    sliderrelief="flat", sliderlength=15, command=self.increase_font_size)
-        self.opacity_scaler.place(x=19, y=382)
-
         # Rotation (°) text
-        self.image_edit_widget_canvas.create_text(56, 500, text=f"Rotation (°)",
+        self.image_edit_widget_canvas.create_text(55, 370, text=f"Rotation (°)",
                                                   font=("Arial", 10, "bold"), fill="white")
+
+        self.text_rotation_spinbox = Spinbox(self.image_edit_widget_canvas, from_=0, to=360, width=4, relief="sunken",
+                                             repeatdelay=500, repeatinterval=100,
+                                             font=("Arial", 11), bg="white", fg="#494949",
+                                             command=self.rotate_watermark_text)
+
+        self.text_rotation_spinbox.bind("<KeyRelease>", self.rotate_watermark_text)
+
+        self.text_rotation_spinbox.place(x=100, y=360)
 
         # Preset Management text
-        self.image_edit_widget_canvas.create_text(86, 600, text=f"Preset Management",
-                                                  font=("Arial", 10, "bold"), fill="white")
+        self.image_edit_widget_canvas.create_text(83, 405, text=f"Preset Management", font=("Arial", 10, "bold"), fill="white")
+
+        # custom text alignment combobox padding
+        preset_combobox_style = Style()
+        preset_combobox_style.configure("Text_Alignment.TCombobox", padding=(2, 5))  # (horizontal, vertical)
+
+        # creating combobox for presets
+        self.saved_presets_options = Combobox(self.image_edit_widget_canvas, values=text_align_options,
+                                      font=("Arial", 8, "bold"),
+                                      state="readonly", width=17, style="Text_Alignment.TCombobox")
+        self.saved_presets_options.set('Select Alignment')
+        self.saved_presets_options.place(x=21, y=420)
+
+        self.create_present_btn = Button(self.image_edit_widget_canvas, text="Create Preset", width=13, bg="gray", command=self.save_preset)
+        self.create_present_btn.place(x=155, y=420)
 
         # creating add image button
         add_image_button = Button(self.image_edit_widget_canvas, text="Select Image", font=("Arial", 12, "bold"),
                                   fg="white",
                                   command=self.open_file_explorer, bd=0, bg="#007aff", width=18, height=2)
-        add_image_button.place(x=48, y=600)
+        add_image_button.place(x=45, y=600)
 
     # ********************************** Display watermark & Align Watermark Position **********************************
 
@@ -274,10 +279,9 @@ class UserInterface(Tk):
         text_x_cord = image_left_side_coord + (image_width // 2)
         text_y_cord = image_top_side_coord + (image_height // 2)
 
-
         # watermark text
         self.watermark_text = self.image_canvas.create_text(text_x_cord, text_y_cord, text=received_text,
-                                                            font=(self.current_font_family,self.current_font_size),
+                                                            font=(self.current_font_family, self.current_font_size),
                                                             anchor="center", fill="black")
 
 
@@ -311,9 +315,9 @@ class UserInterface(Tk):
             image_width = image_x2 - image_x1
             image_height = image_y2 - image_y1
 
-            new_x = image_x1 + (self.watermark_rel_x * image_width)
-            new_y = image_y1 + (self.watermark_rel_y * image_height)
-            self.image_canvas.coords(self.watermark_text, new_x, new_y)
+            self.new_x = image_x1 + (self.watermark_rel_x * image_width)
+            self.new_y = image_y1 + (self.watermark_rel_y * image_height)
+            self.image_canvas.coords(self.watermark_text, self.new_x, self.new_y)
 
     def on_alignment_selected(self, event=None):
 
@@ -339,61 +343,67 @@ class UserInterface(Tk):
 
         if "Align-Center" == triggered_option:
 
-            text_x_cord = image_left_side_coord + (image_width // 2)
-            text_y_cord = image_top_side_coord + (image_height // 2)
-            self.image_canvas.coords(self.watermark_text, text_x_cord, text_y_cord)
+            self.text_x_cord = image_left_side_coord + (image_width // 2)
+            self.text_y_cord = image_top_side_coord + (image_height // 2)
+            self.image_canvas.coords(self.watermark_text, self.text_x_cord, self.text_y_cord)
+
+            return self.text_x_cord, self.text_y_cord
 
         elif triggered_option == "Top-Left-Corner":
 
-            text_x_cord = image_left_side_coord + (text_width / 2) + 5
-            text_y_cord = image_top_side_coord + (text_height / 2) + 5
-            self.image_canvas.coords(self.watermark_text, text_x_cord, text_y_cord)
+            self.text_x_cord = image_left_side_coord + (text_width / 2) + 5
+            self.text_y_cord = image_top_side_coord + (text_height / 2) + 5
+            self.image_canvas.coords(self.watermark_text, self.text_x_cord, self.text_y_cord)
+
+            return self.text_x_cord, self.text_y_cord
 
         elif triggered_option == "Bottom-Left-Corner":
 
-            text_x_cord = image_left_side_coord + (text_width / 2) + 5
-            text_y_cord = image_bottom_side_coord - (text_height / 2) - 5
-            self.image_canvas.coords(self.watermark_text, text_x_cord, text_y_cord)
+            self.text_x_cord = image_left_side_coord + (text_width / 2) + 5
+            self.text_y_cord = image_bottom_side_coord - (text_height / 2) - 5
+            self.image_canvas.coords(self.watermark_text, self.text_x_cord, self.text_y_cord)
+
+            return self.text_x_cord, self.text_y_cord
 
         elif triggered_option == "Left-Center Edge":
 
-            text_x_cord = image_left_side_coord + (text_width / 2) + 5
-            text_y_cord = image_top_side_coord + (image_height // 2)
-            self.image_canvas.coords(self.watermark_text, text_x_cord, text_y_cord)
+            self.text_x_cord = image_left_side_coord + (text_width / 2) + 5
+            self.text_y_cord = image_top_side_coord + (image_height // 2)
+            self.image_canvas.coords(self.watermark_text, self.text_x_cord, self.text_y_cord)
 
         elif triggered_option == "Top-Right-Corner":
 
-            text_x_cord = image_right_side_coord - (text_width / 2) - 5
-            text_y_cord = image_top_side_coord + (text_height / 2) + 5
-            self.image_canvas.coords(self.watermark_text, text_x_cord, text_y_cord)
+            self.text_x_cord = image_right_side_coord - (text_width / 2) - 5
+            self.text_y_cord = image_top_side_coord + (text_height / 2) + 5
+            self.image_canvas.coords(self.watermark_text, self.text_x_cord, self.text_y_cord)
 
 
         elif triggered_option == "Bottom-Right-Corner":
 
-            text_x_cord = image_right_side_coord - (text_width / 2) - 5
-            text_y_cord = image_bottom_side_coord - (text_height / 2) - 5
-            self.image_canvas.coords(self.watermark_text, text_x_cord, text_y_cord)
+            self.text_x_cord = image_right_side_coord - (text_width / 2) - 5
+            self.text_y_cord = image_bottom_side_coord - (text_height / 2) - 5
+            self.image_canvas.coords(self.watermark_text, self.text_x_cord, self.text_y_cord)
 
         elif triggered_option == "Right-Center Edge":
 
-            text_x_cord = image_right_side_coord - (text_width / 2) - 5
-            text_y_cord = image_top_side_coord + (image_height // 2)
-            self.image_canvas.coords(self.watermark_text, text_x_cord,
-                                     text_y_cord)
+            self.text_x_cord = image_right_side_coord - (text_width / 2) - 5
+            self.text_y_cord = image_top_side_coord + (image_height // 2)
+            self.image_canvas.coords(self.watermark_text, self.text_x_cord,
+                                     self.text_y_cord)
 
         elif triggered_option == "Top-Center Edge":
 
-            text_x_cord = image_left_side_coord + (image_width // 2)
-            text_y_cord = image_top_side_coord + (text_height / 2) + 5
-            self.image_canvas.coords(self.watermark_text, text_x_cord,
-                                     text_y_cord)
+            self.text_x_cord = image_left_side_coord + (image_width // 2)
+            self.text_y_cord = image_top_side_coord + (text_height / 2) + 5
+            self.image_canvas.coords(self.watermark_text, self.text_x_cord,
+                                     self.text_y_cord)
 
         elif triggered_option == "Bottom-Center Edge":
 
-            text_x_cord = image_left_side_coord + (image_width // 2)
-            text_y_cord = image_bottom_side_coord - (text_height / 2) - 5
-            self.image_canvas.coords(self.watermark_text, text_x_cord,
-                                     text_y_cord)  # getting watermark text coordinates
+            self.text_x_cord = image_left_side_coord + (image_width // 2)
+            self.text_y_cord = image_bottom_side_coord - (text_height / 2) - 5
+            self.image_canvas.coords(self.watermark_text, self.text_x_cord,
+                                     self.text_y_cord)  # getting watermark text coordinates
 
     # *********************************************** Update Font Style  ***********************************************
 
@@ -401,10 +411,17 @@ class UserInterface(Tk):
 
         if selected_font_style == "reset":
             self.current_font_style = "normal"
+            self.font_style = "normal"
+
         else:
             self.current_font_style = selected_font_style
 
-        self.image_canvas.itemconfig(self.watermark_text,font=(self.current_font_family,self.current_font_size,self.current_font_style))
+        font_properties = self.get_font_properties()
+        self.current_font_family = font_properties["family"]
+        self.current_font_size = font_properties["size"]
+
+        self.image_canvas.itemconfig(self.watermark_text,
+                                     font=(self.current_font_family, self.current_font_size, self.current_font_style))
 
         self.bind("<Control-b>", self.make_text_bold)
         self.bind("<Control-i>", self.make_text_italic)
@@ -413,42 +430,100 @@ class UserInterface(Tk):
 
     def make_text_bold(self, event):
 
-        current_font_specs = self.image_canvas.itemcget(self.watermark_text, "font")
+        font_properties = self.get_font_properties()
 
-        actual_font = font.Font(font=current_font_specs)
-        actual_font.configure(weight="bold")
+        print(font_properties)
 
-        self.image_canvas.itemconfig(self.watermark_text, font =  actual_font)
+        font_design = font_properties["family"]
+        font_size = font_properties["size"]
+
+        if font_properties["weight"] == 'bold':
+            self.font_style = "normal"
+
+        elif font_properties["weight"] == 'normal':
+            self.font_style = "bold"
+
+        for key, value in list(font_properties.items())[3:]:
+
+            if value != 0 :
+                self.font_style +=   " " + value
+
+            if value == 1:
+                self.font_style += " " + key
+
+
+        print(self.font_style)
+
+        self.image_canvas.itemconfig(self.watermark_text, font=(font_design, font_size, self.font_style))
 
     def make_text_italic(self, event):
 
-        current_font_specs = self.image_canvas.itemcget(self.watermark_text, "font")
+        font_properties = self.get_font_properties()
 
-        actual_font = font.Font(font=current_font_specs)
-        actual_font.configure(slant="italic")
+        print(font_properties)
 
-        self.image_canvas.itemconfig(self.watermark_text, font =  actual_font)
+        font_design = font_properties["family"]
+        font_size = font_properties["size"]
+        self.font_style = font_properties["weight"]
 
+        for key, value in list(font_properties.items())[3:]:
+
+            if value == "roman" :
+                self.font_style +=   " " + "italic"
+
+            if value == 1:
+                self.font_style += " " + key
+
+        print(self.font_style)
+
+        self.image_canvas.itemconfig(self.watermark_text, font=(font_design, font_size, self.font_style))
 
     def make_text_underline(self, event):
 
-        current_font_specs = self.image_canvas.itemcget(self.watermark_text, "font")
+        font_properties = self.get_font_properties()
 
-        actual_font = font.Font(font=current_font_specs)
-        actual_font.configure(underline=True)
+        print(font_properties)
 
-        self.image_canvas.itemconfig(self.watermark_text, font =  actual_font)
+
+        font_design = font_properties["family"]
+        font_size = font_properties["size"]
+        self.font_style = font_properties["weight"]
+
+
+        for key, value in list(font_properties.items())[3:]:
+
+            if value != 0:
+                self.font_style += " " + value
+
+            if value == 1:
+                print(value)
+                self.font_style += " " + key
+
+        print(self.font_style)
+
+        self.image_canvas.itemconfig(self.watermark_text, font=(font_design, font_size, self.font_style))
 
     def make_text_normal(self, event):
 
-        current_font_specs = self.image_canvas.itemcget(self.watermark_text, "font")
+        font_properties = self.get_font_properties()
 
-        actual_font = font.Font(font=current_font_specs)
-        actual_font.configure(weight="normal")
+        print(font_properties)
 
-        self.image_canvas.itemconfig(self.watermark_text, font =  actual_font)
+        font_design = font_properties["family"]
+        font_size = font_properties["size"]
+        self.font_style = font_properties["weight"]
 
+        for key, value in list(font_properties.items())[3:]:
 
+            if value != 0:
+                self.font_style += " " + value
+                break
+
+            if value == 0:
+                self.font_style += " " + key
+                break
+
+        self.image_canvas.itemconfig(self.watermark_text, font=(font_design, font_size, self.font_style))
 
     # *********************************************** Select Font Style  ***********************************************
 
@@ -462,8 +537,15 @@ class UserInterface(Tk):
         """this method will make widgets reappear if listbox height are at certain level."""
 
         for widget, x, y in widgets_with_cords:
-            widget.place(x = x, y = y)
+            widget.place(x=x, y=y)
 
+    def get_font_properties(self):
+
+        current_font = self.image_canvas.itemcget(self.watermark_text, "font")
+        temp_font = font.Font(font=current_font)
+        font_properties = temp_font.actual()
+
+        return font_properties
 
     def search_font_design(self, event):
         """this method checks searched font with the font list and append the fonts which matches with the searched fonts"""
@@ -472,10 +554,11 @@ class UserInterface(Tk):
 
         font_design_entered = self.search_font_design_field.get()
 
-        if font_design_entered != "Search font style" and len(
-                font_design_entered) >= 1:  # this condition will prevent the font color fields to hide immediately and hides when the font style is size more than one and text be different than the condition
+        # this condition will prevent the font color fields to hide immediately and hides when the font style is size more than one and text be different than the condition
+        if font_design_entered != "Search font style" and len(font_design_entered) >= 1:
 
-            self.hide_widgets(self.search_font_color_field, self.select_font_color, self.font_size_scaler)
+            self.hide_widgets(self.search_font_color_field, self.select_font_color, self.font_size_scaler,
+                              self.text_rotation_spinbox)
 
             if font_design_entered == "":
                 pass
@@ -483,14 +566,16 @@ class UserInterface(Tk):
             else:
                 searched_font = []
 
-                for font_design in self.font_designs:  # this for loop will check the searched font with all font and append the fonts which are matching
+                # this for loop will check the searched font with all font and append the fonts which are matching
+                for font_design in self.font_designs:
 
                     if font_design_entered.lower() in font_design.lower():
                         searched_font.append(font_design)
 
             self.display_matched_font_design(searched_font)
 
-        elif len(font_design_entered) == 0:  # this condition will make sure when user text in search field is zero than it will show no font style and
+        # this condition will make sure when user text in search field is zero than it will show no font style and
+        elif len(font_design_entered) == 0:
 
             searched_font = []
             self.display_matched_font_design(searched_font)
@@ -499,53 +584,68 @@ class UserInterface(Tk):
     def display_matched_font_design(self, matched_font_design):
         """this method will display all the matched fonts in the GUI so that user can later select whichever font he wants to use."""
 
-        self.select_font_design.delete(0, END)  # deletes any current font in the listbox
+        # deletes any current font in the listbox
+        self.select_font_design.delete(0, END)
 
         if len(matched_font_design) == 0:
             self.select_font_design.config(height=2)
 
         elif len(matched_font_design) != 0:
-            self.select_font_design.config(height=len(matched_font_design))  # creates listbox size as per the matched font result
+            self.select_font_design.config(
+                height=len(matched_font_design))  # creates listbox size as per the matched font result
 
         for font_design in matched_font_design:
-            self.select_font_design.insert(END,font_design)  # here we are adding all the matched font style in the listbox.
+            self.select_font_design.insert(END,
+                                           font_design)  # here we are adding all the matched font style in the listbox.
 
         self.select_font_design.bind("<<ListboxSelect>>", self.apply_font_design)
 
         # separately, decide whether color fields should show or hide
         if len(matched_font_design) <= 2:
 
-            self.make_widgets_reappear((self.search_font_color_field, 102, 220), (self.select_font_color, 20, 243),(self.font_size_scaler, 18, 310))
+            self.make_widgets_reappear((self.search_font_color_field, 102, 220), (self.select_font_color, 20, 243),
+                                       (self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360))
 
         else:
 
-            self.hide_widgets(self.search_font_color_field, self.select_font_color, self.font_size_scaler)
-
+            self.hide_widgets(self.search_font_color_field, self.select_font_color, self.font_size_scaler,
+                              self.text_rotation_spinbox)
 
     def apply_font_design(self, event):
         """this method is responsible for applying the font style to the watermark text"""
 
-        selected_font_design = self.select_font_design.curselection()  # Returns a tuple containing the index of the selected font.
+        # Returns a tuple containing the index of the selected font.
+        selected_font_design = self.select_font_design.curselection()
 
         if not selected_font_design:
             return
 
-        self.current_font_design = self.select_font_design.get(
-            selected_font_design[0])  # Retrieve the font name using the selected index.
+        # Retrieve the font name using the selected index.
+        self.current_font_design = self.select_font_design.get(selected_font_design[0])
 
-        self.search_font_design_field.delete(0, END)  # once the user has retrieved the font it will delete the all fonts in the listbox.
-        self.search_font_design_field.insert(0, self.current_font_design)  # this will insert the selected font in the search box
+        # once the user has retrieved the font it will delete the all fonts in the listbox.
+        self.search_font_design_field.delete(0,END)
+
+        # this will insert the selected font in the search box
+        self.search_font_design_field.insert(0,self.current_font_design)
 
         # Collapse the listbox
         self.select_font_design.config(height=2)
         self.select_font_design.delete(0, END)
 
-        self.image_canvas.itemconfig(self.watermark_text, font=(self.current_font_design, 14))  # applying new font style to the watermark text.
+        font_properties = self.get_font_properties()
+        font_size = font_properties["size"]
+        font_weight = font_properties["weight"] + " " +  font_properties["slant"]
+
+        print(font_weight)
+
+        # applying new font style to the watermark text.
+        self.image_canvas.itemconfig(self.watermark_text, font=(self.current_font_design, font_size, font_weight))
 
         self.current_font_family = self.current_font_design
 
-        self.make_widgets_reappear((self.search_font_color_field, 102,220), (self.select_font_color, 20, 243), (self.font_size_scaler,18, 310))
-
+        self.make_widgets_reappear((self.search_font_color_field, 102, 220), (self.select_font_color, 20, 243),
+                                   (self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360))
 
     # *********************************************** Select Font Color ************************************************
 
@@ -556,7 +656,7 @@ class UserInterface(Tk):
         if font_color_entered != "Search font color" and len(
                 font_color_entered) >= 1:  # this condition will prevent the font color fields to hide immediately and hides when the font style is size more than one and text be different than the condition
 
-            self.hide_widgets(self.font_size_scaler)
+            self.hide_widgets(self.font_size_scaler, self.text_rotation_spinbox)
 
             searched_font_color = []
 
@@ -578,7 +678,8 @@ class UserInterface(Tk):
 
             self.display_matched_font_colors(searched_font_color)
 
-        elif len(font_color_entered) == 0:  # this condition will make sure when user text in search field is zero than it will show no font style and
+        elif len(
+                font_color_entered) == 0:  # this condition will make sure when user text in search field is zero than it will show no font style and
 
             searched_font = []
             self.display_matched_font_colors(searched_font)
@@ -602,11 +703,10 @@ class UserInterface(Tk):
         # separately, decide whether color fields should show or hide
         if len(matched_font_color) <= 4:
 
-            self.make_widgets_reappear((self.font_size_scaler, 18, 310))
+            self.make_widgets_reappear((self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360))
 
         else:
-            self.hide_widgets(self.font_size_scaler)
-
+            self.hide_widgets(self.font_size_scaler, self.text_rotation_spinbox)
 
     def apply_font_color(self, event):
         """this method is responsible for applying the font color to the watermark text"""
@@ -616,23 +716,23 @@ class UserInterface(Tk):
         if not selected_font_color:
             return
 
-        selected_color = self.select_font_color.get(
-            selected_font_color[0])  # Retrieve the font color name using the selected index.
+        # Retrieve the font color name using the selected index.
+        selected_color = self.select_font_color.get(selected_font_color[0])
 
-        self.search_font_color_field.delete(0,
-                                            END)  # once the user has retrieved the font color it will delete the all fonts color in the listbox.
-        self.search_font_color_field.insert(0,
-                                            selected_color)  # this will insert the selected font color in the search box
+        # once the user has retrieved the font color it will delete the all fonts color in the listbox.
+        self.search_font_color_field.delete(0, END)
+
+        # this will insert the selected font color in the search box
+        self.search_font_color_field.insert(0, selected_color)
 
         # Collapse the listbox
         self.select_font_color.config(height=2)
         self.select_font_color.delete(0, END)
 
-        self.image_canvas.itemconfig(self.watermark_text,
-                                     fill=selected_color)  # applying new font style to the watermark text.
+        # applying new font style to the watermark text.
+        self.image_canvas.itemconfig(self.watermark_text, fill=selected_color)
 
-
-        self.make_widgets_reappear((self.font_size_scaler, 18, 310))
+        self.make_widgets_reappear((self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360))
 
     # ********************************************** Increase Font Size ************************************************
 
@@ -643,12 +743,32 @@ class UserInterface(Tk):
             self.current_font_design = "Arial"
 
 
-        # applying new font style to the watermark text.
-        self.image_canvas.itemconfig(self.watermark_text, font=(self.current_font_design, font_size))
+        # applying new font style & font size to the watermark text.
+        self.image_canvas.itemconfig(self.watermark_text, font=(self.current_font_design, font_size, self.font_style))
 
+        self.scaled_font_size = font_size
         self.reposition_watermark_after_resize()
 
-    # *********************************************** Select Font Color ************************************************
+    # ********************************************** Rotate Watermark  *************************************************
+
+    def rotate_watermark_text(self, event=None):
+        """this method will update the font rotation direction into the new angle"""
+
+        text_rotation = self.text_rotation_spinbox.get()
+
+        # applying new font rotation to the watermark text.
+        self.image_canvas.itemconfig(self.watermark_text, angle=text_rotation)
+
+    # ********************************************** Save Watermark  *************************************************
+
+    def save_preset(self):
+
+        print(self.received_text)
+
+
+
+        # print(font_properties)
+
 
     # ******************************************* DISPLAY WATERMARK IMAGE **********************************************
 
