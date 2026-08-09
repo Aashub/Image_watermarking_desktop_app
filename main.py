@@ -1,9 +1,9 @@
 
 from tkinter import *
-from tkinter import filedialog, font
+from tkinter import filedialog, font, simpledialog, messagebox
 from tkinter.ttk import Combobox, Style
 from PIL import Image, ImageTk
-from data import text_align_options, watermark_colors
+from data import text_align_options, watermark_colors, PRESET_DATA
 
 HEADING_TEXT_COLOR = "black"
 WINDOW_WIDTH = 1080
@@ -21,6 +21,7 @@ class UserInterface(Tk):
 
         self.font_style_mode = ""
         self.font_style = "normal"
+        self.text_rotation = 0
         self.received_text = None
         self.scaled_font_size = 8
         screen_width = self.winfo_screenwidth()
@@ -148,10 +149,10 @@ class UserInterface(Tk):
                             bg="gray")
         submit_btn.place(x=150, y=80)
 
-        # 1. Create a shared Tkinter variable
+        # Create a shared Tkinter variable
         selected_option = StringVar(self.image_edit_widget_canvas, value="Option 1")
 
-        # 2. Create the Radiobutton widgets
+        #  Create the Radiobutton widgets
         radio1 = Radiobutton(self.image_edit_widget_canvas, text="Bold", variable=selected_option, value="Option 1",
                              bg="#494949", fg="white", font=("Arial", self.scaled_font_size), activebackground="#494949",
                              activeforeground="white", selectcolor="#494949",
@@ -239,7 +240,6 @@ class UserInterface(Tk):
                                              command=self.rotate_watermark_text)
 
         self.text_rotation_spinbox.bind("<KeyRelease>", self.rotate_watermark_text)
-
         self.text_rotation_spinbox.place(x=100, y=360)
 
         # Preset Management text
@@ -345,66 +345,49 @@ class UserInterface(Tk):
 
             self.text_x_cord = image_left_side_coord + (image_width // 2)
             self.text_y_cord = image_top_side_coord + (image_height // 2)
-            self.image_canvas.coords(self.watermark_text, self.text_x_cord, self.text_y_cord)
-
-            return self.text_x_cord, self.text_y_cord
 
         elif triggered_option == "Top-Left-Corner":
 
             self.text_x_cord = image_left_side_coord + (text_width / 2) + 5
             self.text_y_cord = image_top_side_coord + (text_height / 2) + 5
-            self.image_canvas.coords(self.watermark_text, self.text_x_cord, self.text_y_cord)
-
-            return self.text_x_cord, self.text_y_cord
 
         elif triggered_option == "Bottom-Left-Corner":
 
             self.text_x_cord = image_left_side_coord + (text_width / 2) + 5
             self.text_y_cord = image_bottom_side_coord - (text_height / 2) - 5
-            self.image_canvas.coords(self.watermark_text, self.text_x_cord, self.text_y_cord)
-
-            return self.text_x_cord, self.text_y_cord
 
         elif triggered_option == "Left-Center Edge":
 
             self.text_x_cord = image_left_side_coord + (text_width / 2) + 5
             self.text_y_cord = image_top_side_coord + (image_height // 2)
-            self.image_canvas.coords(self.watermark_text, self.text_x_cord, self.text_y_cord)
 
         elif triggered_option == "Top-Right-Corner":
 
             self.text_x_cord = image_right_side_coord - (text_width / 2) - 5
             self.text_y_cord = image_top_side_coord + (text_height / 2) + 5
-            self.image_canvas.coords(self.watermark_text, self.text_x_cord, self.text_y_cord)
-
 
         elif triggered_option == "Bottom-Right-Corner":
 
             self.text_x_cord = image_right_side_coord - (text_width / 2) - 5
             self.text_y_cord = image_bottom_side_coord - (text_height / 2) - 5
-            self.image_canvas.coords(self.watermark_text, self.text_x_cord, self.text_y_cord)
 
         elif triggered_option == "Right-Center Edge":
 
             self.text_x_cord = image_right_side_coord - (text_width / 2) - 5
             self.text_y_cord = image_top_side_coord + (image_height // 2)
-            self.image_canvas.coords(self.watermark_text, self.text_x_cord,
-                                     self.text_y_cord)
 
         elif triggered_option == "Top-Center Edge":
 
             self.text_x_cord = image_left_side_coord + (image_width // 2)
             self.text_y_cord = image_top_side_coord + (text_height / 2) + 5
-            self.image_canvas.coords(self.watermark_text, self.text_x_cord,
-                                     self.text_y_cord)
 
         elif triggered_option == "Bottom-Center Edge":
 
             self.text_x_cord = image_left_side_coord + (image_width // 2)
             self.text_y_cord = image_bottom_side_coord - (text_height / 2) - 5
-            self.image_canvas.coords(self.watermark_text, self.text_x_cord,
-                                     self.text_y_cord)  # getting watermark text coordinates
 
+        self.image_canvas.coords(self.watermark_text, self.text_x_cord, self.text_y_cord)
+        return self.text_x_cord, self.text_y_cord
     # *********************************************** Update Font Style  ***********************************************
 
     def update_font_style(self, selected_font_style):
@@ -630,8 +613,9 @@ class UserInterface(Tk):
         """this method checks searched font color from the font color list and append the fonts which matches with the searched fonts"""
 
         font_color_entered = self.search_font_color_field.get()
-        if font_color_entered != "Search font color" and len(
-                font_color_entered) >= 1:  # this condition will prevent the font color fields to hide immediately and hides when the font style is size more than one and text be different than the condition
+
+        # this condition will prevent the font color fields to hide immediately and hides when the font style is size more than one and text be different than the condition
+        if font_color_entered != "Search font color" and len(font_color_entered) >= 1:
 
             self.hide_widgets(self.font_size_scaler, self.text_rotation_spinbox)
 
@@ -643,12 +627,14 @@ class UserInterface(Tk):
             else:
                 searched_font_color = []
 
-                for color in self.watermark_colors:  # this for loop will check the searched font color with all font color and append the font color which are matching
+                # this for loop will check the searched font color with all font color and append the font color which are matching
+                for color in self.watermark_colors:
 
                     if font_color_entered.lower() in color.lower():
                         searched_font_color.append(color)
 
-                    elif font_color_entered.lower() not in color.lower():  # this condition will prevent appearing of font size scale widget
+                    # this condition will prevent appearing of font size scale widget
+                    elif font_color_entered.lower() not in color.lower():
                         searched_font = []
                         self.display_matched_font_colors(searched_font)
                         self.select_font_color.config(height=2)
@@ -694,20 +680,20 @@ class UserInterface(Tk):
             return
 
         # Retrieve the font color name using the selected index.
-        selected_color = self.select_font_color.get(selected_font_color[0])
+        self.selected_color = self.select_font_color.get(selected_font_color[0])
 
         # once the user has retrieved the font color it will delete the all fonts color in the listbox.
         self.search_font_color_field.delete(0, END)
 
         # this will insert the selected font color in the search box
-        self.search_font_color_field.insert(0, selected_color)
+        self.search_font_color_field.insert(0, self.selected_color)
 
         # Collapse the listbox
         self.select_font_color.config(height=2)
         self.select_font_color.delete(0, END)
 
         # applying new font style to the watermark text.
-        self.image_canvas.itemconfig(self.watermark_text, fill=selected_color)
+        self.image_canvas.itemconfig(self.watermark_text, fill=self.selected_color)
 
         self.make_widgets_reappear((self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360))
 
@@ -741,21 +727,47 @@ class UserInterface(Tk):
     def rotate_watermark_text(self, event=None):
         """this method will update the font rotation direction into the new angle"""
 
-        text_rotation = self.text_rotation_spinbox.get()
+        self.text_rotation = self.text_rotation_spinbox.get()
 
         # applying new font rotation to the watermark text.
-        self.image_canvas.itemconfig(self.watermark_text, angle=text_rotation)
+        self.image_canvas.itemconfig(self.watermark_text, angle=self.text_rotation)
 
     # ********************************************** Save Watermark  *************************************************
 
     def save_preset(self):
 
-        print(self.received_text)
+        global x_cord, y_cord
+        font_properties = self.get_font_properties()
+
+        if self.watermark_mode == "free":
+
+            x_cord = self.watermark_rel_x * self.original_width
+            y_cord  = self.watermark_rel_y * self.original_height
 
 
+        elif self.watermark_mode == "alignment":
+            x_cord = self.text_x_cord
+            y_cord = self.text_y_cord
 
-        # print(font_properties)
+        preset_name = simpledialog.askstring("Save Preset", "Please Enter the preset name.")
 
+        if preset_name is not None:
+
+            PRESET_DATA[preset_name] = {
+
+                "watermark_text": self.received_text,
+                "font_properties": font_properties,
+                "font_color": self.selected_color,
+                "font_angle": self.text_rotation,
+                "font_coordinate": (x_cord, y_cord)
+            }
+
+            messagebox.showinfo("Result", f"{preset_name}")
+
+        else:
+            messagebox.showinfo("Result", "You clicked cancel!")
+
+        print(PRESET_DATA)
 
     # ******************************************* DISPLAY WATERMARK IMAGE **********************************************
 
