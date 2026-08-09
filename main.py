@@ -19,6 +19,7 @@ class UserInterface(Tk):
 
         # this will set the game window center to the screen.
 
+        self.font_style_mode = ""
         self.font_style = "normal"
         self.received_text = None
         self.scaled_font_size = 8
@@ -408,12 +409,17 @@ class UserInterface(Tk):
 
     def update_font_style(self, selected_font_style):
 
+        self.font_style_mode = "radio-btn"
+
         if selected_font_style == "reset":
             self.current_font_style = "normal"
             self.font_style = "normal"
 
         else:
             self.current_font_style = selected_font_style
+
+
+        print(self.current_font_style)
 
         font_properties = self.get_font_properties()
         self.current_font_family = font_properties["family"]
@@ -430,6 +436,8 @@ class UserInterface(Tk):
     def make_text_bold(self, event):
         """this method will add bold weight to the text and when user repress it it will change weight into normal"""
 
+        self.font_style_mode = "keyboard_btn"
+
         font_properties = self.get_font_properties()
 
         font_design = font_properties["family"]
@@ -443,17 +451,20 @@ class UserInterface(Tk):
         elif font_properties["weight"] == 'normal':
             self.font_style = "bold"
 
-        for key, value in list(font_properties.items())[3:5]:
+        # preserve italic and underline when toggling bold
+        if font_properties["slant"] == "italic":
+            self.font_style += " italic"
 
-            if value != 0 :
-                self.font_style +=   " " + value
-                break
+        if font_properties["underline"]:
+            self.font_style += " underline"
 
 
         self.image_canvas.itemconfig(self.watermark_text, font=(font_design, font_size, self.font_style))
 
     def make_text_italic(self, event):
         """this method will add italic to the text and when user repress it it will remove the italic slant"""
+
+        self.font_style_mode = "keyboard_btn"
 
         font_properties = self.get_font_properties()
 
@@ -474,6 +485,7 @@ class UserInterface(Tk):
     def make_text_underline(self, event):
         """this method will add underline to the text and when user repress it it will remove the underline"""
 
+        self.font_style_mode = "keyboard_btn"
 
         font_properties = self.get_font_properties()
 
@@ -488,10 +500,7 @@ class UserInterface(Tk):
         for key, value in list(font_properties.items())[3:5]:
 
             if value == 0:
-                print(self.font_style)
                 self.font_style += " " + key
-
-        print(self.font_style)
 
         self.image_canvas.itemconfig(self.watermark_text, font=(font_design, font_size, self.font_style))
 
@@ -606,12 +615,9 @@ class UserInterface(Tk):
 
         font_properties = self.get_font_properties()
         font_size = font_properties["size"]
-        font_weight = font_properties["weight"] + " " +  font_properties["slant"]
-
-        print(font_weight)
 
         # applying new font style to the watermark text.
-        self.image_canvas.itemconfig(self.watermark_text, font=(self.current_font_design, font_size, font_weight))
+        self.image_canvas.itemconfig(self.watermark_text, font=(self.current_font_design, font_size, self.font_style))
 
         self.current_font_family = self.current_font_design
 
@@ -710,12 +716,22 @@ class UserInterface(Tk):
     def increase_font_size(self, font_size):
         """this method will increase the font size."""
 
+
         if not hasattr(self, "current_font_design"):
             self.current_font_design = "Arial"
 
 
-        # applying new font style & font size to the watermark text.
-        self.image_canvas.itemconfig(self.watermark_text, font=(self.current_font_design, font_size, self.font_style))
+        if self.font_style_mode == "keyboard_btn":
+
+            # applying new font style & font size to the watermark text.
+            self.image_canvas.itemconfig(self.watermark_text, font=(self.current_font_design, font_size, self.font_style))
+
+        elif self.font_style_mode == "radio-btn":
+
+            self.image_canvas.itemconfig(self.watermark_text, font=(self.current_font_design, font_size, self.current_font_style))
+
+        else:
+            self.image_canvas.itemconfig(self.watermark_text,font=(self.current_font_design, font_size))
 
         self.scaled_font_size = font_size
         self.reposition_watermark_after_resize()
