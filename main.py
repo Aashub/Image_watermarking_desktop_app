@@ -182,7 +182,6 @@ class UserInterface(Tk):
         self.bind("<Control-i>", self.make_text_italic)
         self.bind("<Control-u>", self.make_text_underline)
 
-
         # font style text
         self.image_edit_widget_canvas.create_text(58, 160, text=f"Font Design",
                                                   font=("Arial", 10, "bold"), fill="white")
@@ -450,6 +449,7 @@ class UserInterface(Tk):
                 self.font_style +=   " " + value
                 break
 
+
         self.image_canvas.itemconfig(self.watermark_text, font=(font_design, font_size, self.font_style))
 
     def make_text_italic(self, event):
@@ -465,7 +465,9 @@ class UserInterface(Tk):
 
             if value == "roman" :
                 self.font_style +=   " " + "italic"
-                break
+
+            if value == 1:
+                self.font_style += " " + key
 
         self.image_canvas.itemconfig(self.watermark_text, font=(font_design, font_size, self.font_style))
 
