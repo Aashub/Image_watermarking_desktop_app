@@ -181,7 +181,7 @@ class UserInterface(Tk):
         self.bind("<Control-b>", self.make_text_bold)
         self.bind("<Control-i>", self.make_text_italic)
         self.bind("<Control-u>", self.make_text_underline)
-        self.bind("<Control-r>", self.make_text_normal)
+
 
         # font style text
         self.image_edit_widget_canvas.create_text(58, 160, text=f"Font Design",
@@ -426,41 +426,36 @@ class UserInterface(Tk):
         self.bind("<Control-b>", self.make_text_bold)
         self.bind("<Control-i>", self.make_text_italic)
         self.bind("<Control-u>", self.make_text_underline)
-        self.bind("<Control-r>", self.make_text_normal)
+
 
     def make_text_bold(self, event):
+        """this method will add bold weight to the text and when user repress it it will change weight into normal"""
 
         font_properties = self.get_font_properties()
-
-        print(font_properties)
 
         font_design = font_properties["family"]
         font_size = font_properties["size"]
 
+        # bold turns into normal
         if font_properties["weight"] == 'bold':
             self.font_style = "normal"
 
+        # if normal turns into bold
         elif font_properties["weight"] == 'normal':
             self.font_style = "bold"
 
-        for key, value in list(font_properties.items())[3:]:
+        for key, value in list(font_properties.items())[3:5]:
 
             if value != 0 :
                 self.font_style +=   " " + value
-
-            if value == 1:
-                self.font_style += " " + key
-
-
-        print(self.font_style)
+                break
 
         self.image_canvas.itemconfig(self.watermark_text, font=(font_design, font_size, self.font_style))
 
     def make_text_italic(self, event):
+        """this method will add italic to the text and when user repress it it will remove the italic slant"""
 
         font_properties = self.get_font_properties()
-
-        print(font_properties)
 
         font_design = font_properties["family"]
         font_size = font_properties["size"]
@@ -470,60 +465,34 @@ class UserInterface(Tk):
 
             if value == "roman" :
                 self.font_style +=   " " + "italic"
-
-            if value == 1:
-                self.font_style += " " + key
-
-        print(self.font_style)
+                break
 
         self.image_canvas.itemconfig(self.watermark_text, font=(font_design, font_size, self.font_style))
 
     def make_text_underline(self, event):
+        """this method will add underline to the text and when user repress it it will remove the underline"""
+
 
         font_properties = self.get_font_properties()
 
-        print(font_properties)
-
-
         font_design = font_properties["family"]
         font_size = font_properties["size"]
-        self.font_style = font_properties["weight"]
+        font_weight = font_properties["weight"]
+        font_slant = font_properties["slant"]
 
+        self.font_style = font_weight + " " + font_slant
 
-        for key, value in list(font_properties.items())[3:]:
+        # this for loop will add the underline key in the font style so that it will later gets applied.
+        for key, value in list(font_properties.items())[3:5]:
 
-            if value != 0:
-                self.font_style += " " + value
-
-            if value == 1:
-                print(value)
+            if value == 0:
+                print(self.font_style)
                 self.font_style += " " + key
 
         print(self.font_style)
 
         self.image_canvas.itemconfig(self.watermark_text, font=(font_design, font_size, self.font_style))
 
-    def make_text_normal(self, event):
-
-        font_properties = self.get_font_properties()
-
-        print(font_properties)
-
-        font_design = font_properties["family"]
-        font_size = font_properties["size"]
-        self.font_style = font_properties["weight"]
-
-        for key, value in list(font_properties.items())[3:]:
-
-            if value != 0:
-                self.font_style += " " + value
-                break
-
-            if value == 0:
-                self.font_style += " " + key
-                break
-
-        self.image_canvas.itemconfig(self.watermark_text, font=(font_design, font_size, self.font_style))
 
     # *********************************************** Select Font Style  ***********************************************
 
