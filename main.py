@@ -894,7 +894,7 @@ class UserInterface(Tk):
                 presets = json.load(file)
 
         except FileNotFoundError:
-
+            presets = {}
             # Save the updated presets
             with open("preset.json", "w") as file:
                 json.dump(presets, file, indent=4)
@@ -930,6 +930,7 @@ class UserInterface(Tk):
             except TypeError:
                 return
 
+
             # it will calculate text relative position on the screen and make sure the text get aligned correct position.
             self.watermark_rel_x = x_cord / self.original_width
             self.watermark_rel_y = y_cord / self.original_height
@@ -945,6 +946,8 @@ class UserInterface(Tk):
 
             font_style = font_properties["weight"] + " " + font_properties["slant"] + " " + font_properties["underline"]
 
+
+
             # applying preset.
             self.watermark_text = self.image_canvas.create_text(adjusted_x_cord, adjusted_y_cord, text=watermark_text,
                                                                 font=(font_family, font_size, font_style),
@@ -955,7 +958,7 @@ class UserInterface(Tk):
     def get_new_image_text_coordinates(self, preset_x_cord, preset_y_cord):
 
         # it will prevent program from getting attribute error
-        if not hasattr(self, "original_width") or hasattr(self, "original_height"):
+        if not hasattr(self, "original_width") or not hasattr(self, "original_height"):
             return
 
         # saved coordinates represent position on the ORIGINAL image

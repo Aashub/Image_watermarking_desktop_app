@@ -2,28 +2,18 @@
     "preset 1": {
         "watermark_text": "watermark",
         "font_properties": {
-            "family": "Calibri",
+            "family": "Comic Sans MS",
             "size": 14,
             "weight": "bold",
             "slant": "italic",
-            "underline": 1,
+            "underline": 0,
             "overstrike": 0
         },
-        "font_color": "navy",
+        "font_color": "springgreen",
         "font_angle": 0,
         "font_coordinate": [
-            49.0,
-            21.0
-        ]
-    },
-    "simple": {
-        "watermark_text": null,
-        "font_properties": null,
-        "font_color": "thistle",
-        "font_angle": "23",
-        "font_coordinate": [
-            400.0,
-            345.0
+            400,
+            23.5
         ]
     }
 }
