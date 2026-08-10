@@ -529,7 +529,7 @@ class UserInterface(Tk):
         if font_design_entered != "Search font style" and len(font_design_entered) >= 1:
 
             self.hide_widgets(self.search_font_color_field, self.select_font_color, self.font_size_scaler,
-                              self.text_rotation_spinbox)
+                              self.text_rotation_spinbox, self.saved_presets_options, self.create_present_btn)
 
             if font_design_entered == "":
                 pass
@@ -575,12 +575,13 @@ class UserInterface(Tk):
         if len(matched_font_design) <= 2:
 
             self.make_widgets_reappear((self.search_font_color_field, 102, 220), (self.select_font_color, 20, 243),
-                                       (self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360))
+                                       (self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360),
+                                       (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420))
 
         else:
 
             self.hide_widgets(self.search_font_color_field, self.select_font_color, self.font_size_scaler,
-                              self.text_rotation_spinbox)
+                              self.text_rotation_spinbox, self.saved_presets_options, self.create_present_btn)
 
     def apply_font_design(self, event):
         """this method is responsible for applying the font style to the watermark text"""
@@ -613,7 +614,8 @@ class UserInterface(Tk):
         self.current_font_family = self.current_font_design
 
         self.make_widgets_reappear((self.search_font_color_field, 102, 220), (self.select_font_color, 20, 243),
-                                   (self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360))
+                                   (self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360),
+                                   (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420))
 
     # *********************************************** Select Font Color ************************************************
 
@@ -625,7 +627,8 @@ class UserInterface(Tk):
         # this condition will prevent the font color fields to hide immediately and hides when the font style is size more than one and text be different than the condition
         if font_color_entered != "Search font color" and len(font_color_entered) >= 1:
 
-            self.hide_widgets(self.font_size_scaler, self.text_rotation_spinbox)
+            self.hide_widgets(self.font_size_scaler, self.text_rotation_spinbox, self.saved_presets_options,
+                              self.create_present_btn)
 
             searched_font_color = []
 
@@ -674,10 +677,12 @@ class UserInterface(Tk):
         # separately, decide whether color fields should show or hide
         if len(matched_font_color) <= 4:
 
-            self.make_widgets_reappear((self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360))
+            self.make_widgets_reappear((self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360),
+                                       (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420))
 
         else:
-            self.hide_widgets(self.font_size_scaler, self.text_rotation_spinbox)
+            self.hide_widgets(self.font_size_scaler, self.text_rotation_spinbox, self.create_present_btn,
+                              self.saved_presets_options)
 
     def apply_font_color(self, event):
         """this method is responsible for applying the font color to the watermark text"""
@@ -703,7 +708,8 @@ class UserInterface(Tk):
         # applying new font style to the watermark text.
         self.image_canvas.itemconfig(self.watermark_text, fill=self.selected_color)
 
-        self.make_widgets_reappear((self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360))
+        self.make_widgets_reappear((self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360),
+                                   (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420))
 
     # ********************************************** Increase Font Size ************************************************
 
@@ -855,7 +861,7 @@ class UserInterface(Tk):
             x_cord = preset_key["font_coordinate"][0]
             y_cord = preset_key["font_coordinate"][1]
 
-            adjusted_x_cord, adjusted_y_cord =  self.get_new_image_text_coordinates(x_cord, y_cord)
+            adjusted_x_cord, adjusted_y_cord = self.get_new_image_text_coordinates(x_cord, y_cord)
 
             # it will calculate text relative position on the screen and make sure the text get aligned correct position.
             self.watermark_rel_x = x_cord / self.original_width
@@ -884,7 +890,6 @@ class UserInterface(Tk):
         # saved coordinates represent position on the ORIGINAL image
         ratio_x = preset_x_cord / self.original_width
         ratio_y = preset_y_cord / self.original_height
-
 
         # get the image's CURRENT bounds/size on the canvas right now
         image_x1, image_y1, image_x2, image_y2 = self.image_canvas.bbox(self.image_on_canvas)
