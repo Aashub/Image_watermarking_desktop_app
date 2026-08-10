@@ -849,11 +849,18 @@ class UserInterface(Tk):
 
             # storing preset value into the variable
             watermark_text = preset_key["watermark_text"]
-            x_cord = preset_key["font_coordinate"][0]
-            y_cord = preset_key["font_coordinate"][1]
             font_color = preset_key["font_color"]
             font_angle = preset_key["font_angle"]
             font_properties = preset_key["font_properties"]
+            x_cord = preset_key["font_coordinate"][0]
+            y_cord = preset_key["font_coordinate"][1]
+
+            adjusted_x_cord, adjusted_y_cord =  self.get_new_image_text_coordinates(x_cord, y_cord)
+
+            # it will calculate text relative position on the screen and make sure the text get aligned correct position.
+            self.watermark_rel_x = x_cord / self.original_width
+            self.watermark_rel_y = y_cord / self.original_height
+            self.watermark_mode = "free"
 
             font_family = font_properties["family"]
             font_size = font_properties["size"]
@@ -866,9 +873,29 @@ class UserInterface(Tk):
             font_style = font_properties["weight"] + " " + font_properties["slant"] + " " + font_properties["underline"]
 
             # applying preset.
-            self.watermark_text = self.image_canvas.create_text(x_cord, y_cord, text=watermark_text,
+            self.watermark_text = self.image_canvas.create_text(adjusted_x_cord, adjusted_y_cord, text=watermark_text,
                                                                 font=(font_family, font_size, font_style),
                                                                 fill=font_color, angle=font_angle)
+
+        self.reposition_watermark_after_resize()
+
+    def get_new_image_text_coordinates(self, preset_x_cord, preset_y_cord):
+
+        # saved coordinates represent position on the ORIGINAL image
+        ratio_x = preset_x_cord / self.original_width
+        ratio_y = preset_y_cord / self.original_height
+
+
+        # get the image's CURRENT bounds/size on the canvas right now
+        image_x1, image_y1, image_x2, image_y2 = self.image_canvas.bbox(self.image_on_canvas)
+        current_image_width = image_x2 - image_x1
+        current_image_height = image_y2 - image_y1
+
+        # recompute actual canvas position based on current zoom level
+        new_x_cord = image_x1 + (ratio_x * current_image_width)
+        new_y_cord = image_y1 + (ratio_y * current_image_height)
+
+        return new_x_cord, new_y_cord
 
     # ******************************************* DISPLAY WATERMARK IMAGE **********************************************
 

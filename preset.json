@@ -2,35 +2,18 @@
     "preset 1": {
         "watermark_text": "watermark",
         "font_properties": {
-            "family": "Consolas",
+            "family": "Calibri",
             "size": 14,
             "weight": "bold",
             "slant": "italic",
             "underline": 1,
             "overstrike": 0
         },
-        "font_color": "rosybrown",
+        "font_color": "navy",
         "font_angle": 0,
         "font_coordinate": [
-            400.0,
-            345.0
-        ]
-    },
-    "preset 2": {
-        "watermark_text": "watermark 2",
-        "font_properties": {
-            "family": "Lucida Sans Unicode",
-            "size": 14,
-            "weight": "normal",
-            "slant": "roman",
-            "underline": 1,
-            "overstrike": 0
-        },
-        "font_color": "lightsalmon",
-        "font_angle": 0,
-        "font_coordinate": [
-            546.0,
-            573.0
+            49.0,
+            21.0
         ]
     }
 }
