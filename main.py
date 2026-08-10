@@ -119,6 +119,12 @@ class UserInterface(Tk):
             """this function capture the entered text in entry field and pass that text to display_watermark_text method."""
 
             self.received_text = self.entry_field.get()
+
+            # this will make sure if user wants to edit text it will make the watermark text change
+            if hasattr(self, "watermark_text"):
+                self.image_canvas.itemconfig(self.watermark_text, text = self.received_text)
+                return
+
             self.display_watermark_text(self.received_text)
 
             # watermark text
@@ -282,6 +288,11 @@ class UserInterface(Tk):
     def display_watermark_text(self, received_text):
         """this method will display the watermark text on the canvas image area on the screen"""
 
+        # this will give user a warning if he tries to add text before adding image.
+        if not hasattr(self, "image_on_canvas"):
+            messagebox.showinfo("Warning", "Please add Image on the screen First!")
+            return
+
         image_coord = self.image_canvas.bbox(self.image_on_canvas)
         image_left_side_coord, image_top_side_coord, image_right_side_coord, image_bottom_side_coord = image_coord
 
@@ -338,12 +349,23 @@ class UserInterface(Tk):
         self.watermark_mode = "alignment"  # selecting an option overrides free drag
         triggered_option = self.current_alignment
 
+
+        # this method will prevent on giving attribute error when user tries to use widget even though he haven't added image or text
+        if not hasattr(self, "image_on_canvas"):
+            return
+
         # will get image all four side coordinates
         image_coord = self.image_canvas.bbox(self.image_on_canvas)
         image_left_side_coord, image_top_side_coord, image_right_side_coord, image_bottom_side_coord = image_coord
 
         image_width = image_right_side_coord - image_left_side_coord  # image width
         image_height = image_bottom_side_coord - image_top_side_coord  # image height
+
+
+        if not hasattr(self, "watermark_text"):
+            self.alignment_options.set('Select Alignment')
+            messagebox.showinfo("Warning", "Please add watermark text on image first")
+            return
 
         # will get text all four side coordinates
         text_coord = self.image_canvas.bbox(self.watermark_text)
@@ -413,10 +435,13 @@ class UserInterface(Tk):
         else:
             self.current_font_style = selected_font_style
 
-        print(self.current_font_style)
 
         font_properties = self.get_font_properties()
-        self.current_font_family = font_properties["family"]
+        try:
+            self.current_font_family = font_properties["family"]
+        except TypeError:
+            return
+
         self.current_font_size = font_properties["size"]
 
         self.image_canvas.itemconfig(self.watermark_text,
@@ -512,6 +537,10 @@ class UserInterface(Tk):
 
     def get_font_properties(self):
 
+        # this method will prevent on giving attribute error when user tries to use widget even though he haven't added image or text
+        if not hasattr(self, "watermark_text"):
+            return
+
         current_font = self.image_canvas.itemcget(self.watermark_text, "font")
         temp_font = font.Font(font=current_font)
         font_properties = temp_font.actual()
@@ -606,7 +635,20 @@ class UserInterface(Tk):
         self.select_font_design.delete(0, END)
 
         font_properties = self.get_font_properties()
-        font_size = font_properties["size"]
+
+        try:
+            font_size = font_properties["size"]
+        except TypeError:
+            font_size = 14
+
+        # this will make sure that after user use font family from list box without adding image and text all widget will appear even after selecting the font family
+        if not hasattr(self, "watermark_text"):
+            self.make_widgets_reappear((self.search_font_color_field, 102, 220), (self.select_font_color, 20, 243),
+                                       (self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360),
+                                       (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420))
+
+
+            return
 
         # applying new font style to the watermark text.
         self.image_canvas.itemconfig(self.watermark_text, font=(self.current_font_design, font_size, self.font_style))
@@ -705,6 +747,12 @@ class UserInterface(Tk):
         self.select_font_color.config(height=2)
         self.select_font_color.delete(0, END)
 
+        # this will make sure that after user use font color from list box without adding image and text all widget will appear even after selecting the font color
+        if not hasattr(self, "watermark_text"):
+            self.make_widgets_reappear((self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360),
+                                       (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420))
+            return
+
         # applying new font style to the watermark text.
         self.image_canvas.itemconfig(self.watermark_text, fill=self.selected_color)
 
@@ -727,10 +775,19 @@ class UserInterface(Tk):
 
         elif self.font_style_mode == "radio-btn":
 
+            # it will prevent program from getting attribute error
+            if not hasattr(self, "watermark_text"):
+                return
+
             self.image_canvas.itemconfig(self.watermark_text,
                                          font=(self.current_font_design, font_size, self.current_font_style))
 
         else:
+
+            # it will prevent program from getting attribute error
+            if not hasattr(self, "watermark_text"):
+                return
+
             self.image_canvas.itemconfig(self.watermark_text, font=(self.current_font_design, font_size))
 
         self.scaled_font_size = font_size
@@ -742,6 +799,10 @@ class UserInterface(Tk):
         """this method will update the font rotation direction into the new angle"""
 
         self.text_rotation = self.text_rotation_spinbox.get()
+
+        # it will prevent program from getting attribute error
+        if not hasattr(self, "watermark_text"):
+            return
 
         # applying new font rotation to the watermark text.
         self.image_canvas.itemconfig(self.watermark_text, angle=self.text_rotation)
@@ -768,6 +829,9 @@ class UserInterface(Tk):
 
             # if user didn't align text at all then this will create x and y coords
             except AttributeError:
+
+                if not hasattr(self, "original_width") or not hasattr(self, "original_height"):
+                    return
                 x_cord = self.watermark_rel_x * self.original_width
                 y_cord = self.watermark_rel_y * self.original_height
 
@@ -861,7 +925,10 @@ class UserInterface(Tk):
             x_cord = preset_key["font_coordinate"][0]
             y_cord = preset_key["font_coordinate"][1]
 
-            adjusted_x_cord, adjusted_y_cord = self.get_new_image_text_coordinates(x_cord, y_cord)
+            try:
+                adjusted_x_cord, adjusted_y_cord = self.get_new_image_text_coordinates(x_cord, y_cord)
+            except TypeError:
+                return
 
             # it will calculate text relative position on the screen and make sure the text get aligned correct position.
             self.watermark_rel_x = x_cord / self.original_width
@@ -886,6 +953,10 @@ class UserInterface(Tk):
         self.reposition_watermark_after_resize()
 
     def get_new_image_text_coordinates(self, preset_x_cord, preset_y_cord):
+
+        # it will prevent program from getting attribute error
+        if not hasattr(self, "original_width") or hasattr(self, "original_height"):
+            return
 
         # saved coordinates represent position on the ORIGINAL image
         ratio_x = preset_x_cord / self.original_width
@@ -950,6 +1021,7 @@ class UserInterface(Tk):
         self.image_canvas.itemconfig(self.image_on_canvas, image=self.watermarking_image)
 
         self.reposition_watermark_after_resize()
+
 
 
 app_window = UserInterface()
