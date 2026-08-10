@@ -1,9 +1,9 @@
-
 from tkinter import *
 from tkinter import filedialog, font, simpledialog, messagebox
 from tkinter.ttk import Combobox, Style
 from PIL import Image, ImageTk
-from data import text_align_options, watermark_colors, PRESET_DATA
+from data import text_align_options, watermark_colors
+import json
 
 HEADING_TEXT_COLOR = "black"
 WINDOW_WIDTH = 1080
@@ -19,6 +19,7 @@ class UserInterface(Tk):
 
         # this will set the game window center to the screen.
 
+        self.preset_name = []
         self.font_style_mode = ""
         self.font_style = "normal"
         self.text_rotation = 0
@@ -121,6 +122,7 @@ class UserInterface(Tk):
             self.display_watermark_text(self.received_text)
 
             # watermark text
+
         self.image_edit_widget_canvas.create_text(72, 30, text=f"Water Mark text",
                                                   font=("Arial", 10, "bold"), fill="white")
 
@@ -154,23 +156,27 @@ class UserInterface(Tk):
 
         #  Create the Radiobutton widgets
         radio1 = Radiobutton(self.image_edit_widget_canvas, text="Bold", variable=selected_option, value="Option 1",
-                             bg="#494949", fg="white", font=("Arial", self.scaled_font_size), activebackground="#494949",
+                             bg="#494949", fg="white", font=("Arial", self.scaled_font_size),
+                             activebackground="#494949",
                              activeforeground="white", selectcolor="#494949",
                              command=lambda: self.update_font_style("bold"))
 
         radio2 = Radiobutton(self.image_edit_widget_canvas, text="Itallic", variable=selected_option, value="Option 2",
-                             bg="#494949", fg="white", font=("Arial", self.scaled_font_size), activebackground="#494949",
+                             bg="#494949", fg="white", font=("Arial", self.scaled_font_size),
+                             activebackground="#494949",
                              activeforeground="white", selectcolor="#494949",
                              command=lambda: self.update_font_style("italic"))
 
         radio3 = Radiobutton(self.image_edit_widget_canvas, text="Underline", variable=selected_option,
                              value="Option 3",
-                             bg="#494949", fg="white", font=("Arial", self.scaled_font_size), activebackground="#494949",
+                             bg="#494949", fg="white", font=("Arial", self.scaled_font_size),
+                             activebackground="#494949",
                              activeforeground="white", selectcolor="#494949",
                              command=lambda: self.update_font_style("underline"))
 
         radio4 = Radiobutton(self.image_edit_widget_canvas, text="reset", variable=selected_option, value="Option 4",
-                             bg="#494949", fg="white", font=("Arial", self.scaled_font_size), activebackground="#494949",
+                             bg="#494949", fg="white", font=("Arial", self.scaled_font_size),
+                             activebackground="#494949",
                              activeforeground="white", selectcolor="#494949",
                              command=lambda: self.update_font_style("reset"))
 
@@ -243,21 +249,27 @@ class UserInterface(Tk):
         self.text_rotation_spinbox.place(x=100, y=360)
 
         # Preset Management text
-        self.image_edit_widget_canvas.create_text(83, 405, text=f"Preset Management", font=("Arial", 10, "bold"), fill="white")
+        self.image_edit_widget_canvas.create_text(83, 405, text=f"Preset Management", font=("Arial", 10, "bold"),
+                                                  fill="white")
 
         # custom text alignment combobox padding
         preset_combobox_style = Style()
         preset_combobox_style.configure("Text_Alignment.TCombobox", padding=(2, 5))  # (horizontal, vertical)
 
         # creating combobox for presets
-        self.saved_presets_options = Combobox(self.image_edit_widget_canvas, values=text_align_options,
-                                      font=("Arial", 8, "bold"),
-                                      state="readonly", width=17, style="Text_Alignment.TCombobox")
-        self.saved_presets_options.set('Select Alignment')
+        self.saved_presets_options = Combobox(self.image_edit_widget_canvas, values=self.preset_name,
+                                              font=("Arial", 8, "bold"),
+                                              state="readonly", width=17, style="Text_Alignment.TCombobox")
+        self.saved_presets_options.set('Select Presets')
         self.saved_presets_options.place(x=21, y=420)
 
-        self.create_present_btn = Button(self.image_edit_widget_canvas, text="Create Preset", width=13, bg="gray", command=self.save_preset)
+        self.saved_presets_options.bind("<<ComboboxSelected>>", self.apply_preset_style)
+
+        self.create_present_btn = Button(self.image_edit_widget_canvas, text="Create Preset", width=13, bg="gray",
+                                         command=self.collect_preset_data)
         self.create_present_btn.place(x=155, y=420)
+
+        self.add_preset_name_in_combobox()
 
         # creating add image button
         add_image_button = Button(self.image_edit_widget_canvas, text="Select Image", font=("Arial", 12, "bold"),
@@ -283,7 +295,6 @@ class UserInterface(Tk):
         self.watermark_text = self.image_canvas.create_text(text_x_cord, text_y_cord, text=received_text,
                                                             font=(self.current_font_family, self.current_font_size),
                                                             anchor="center", fill="black")
-
 
         def move_text_on_drag(event):
             "this function will move text on the image anywhere the user wants."
@@ -388,6 +399,7 @@ class UserInterface(Tk):
 
         self.image_canvas.coords(self.watermark_text, self.text_x_cord, self.text_y_cord)
         return self.text_x_cord, self.text_y_cord
+
     # *********************************************** Update Font Style  ***********************************************
 
     def update_font_style(self, selected_font_style):
@@ -401,7 +413,6 @@ class UserInterface(Tk):
         else:
             self.current_font_style = selected_font_style
 
-
         print(self.current_font_style)
 
         font_properties = self.get_font_properties()
@@ -414,7 +425,6 @@ class UserInterface(Tk):
         self.bind("<Control-b>", self.make_text_bold)
         self.bind("<Control-i>", self.make_text_italic)
         self.bind("<Control-u>", self.make_text_underline)
-
 
     def make_text_bold(self, event):
         """this method will add bold weight to the text and when user repress it it will change weight into normal"""
@@ -441,7 +451,6 @@ class UserInterface(Tk):
         if font_properties["underline"]:
             self.font_style += " underline"
 
-
         self.image_canvas.itemconfig(self.watermark_text, font=(font_design, font_size, self.font_style))
 
     def make_text_italic(self, event):
@@ -457,8 +466,8 @@ class UserInterface(Tk):
 
         for key, value in list(font_properties.items())[3:]:
 
-            if value == "roman" :
-                self.font_style +=   " " + "italic"
+            if value == "roman":
+                self.font_style += " " + "italic"
 
             if value == 1:
                 self.font_style += " " + key
@@ -486,7 +495,6 @@ class UserInterface(Tk):
                 self.font_style += " " + key
 
         self.image_canvas.itemconfig(self.watermark_text, font=(font_design, font_size, self.font_style))
-
 
     # *********************************************** Select Font Style  ***********************************************
 
@@ -587,10 +595,10 @@ class UserInterface(Tk):
         self.current_font_design = self.select_font_design.get(selected_font_design[0])
 
         # once the user has retrieved the font it will delete the all fonts in the listbox.
-        self.search_font_design_field.delete(0,END)
+        self.search_font_design_field.delete(0, END)
 
         # this will insert the selected font in the search box
-        self.search_font_design_field.insert(0,self.current_font_design)
+        self.search_font_design_field.insert(0, self.current_font_design)
 
         # Collapse the listbox
         self.select_font_design.config(height=2)
@@ -702,22 +710,22 @@ class UserInterface(Tk):
     def increase_font_size(self, font_size):
         """this method will increase the font size."""
 
-
         if not hasattr(self, "current_font_design"):
             self.current_font_design = "Arial"
-
 
         if self.font_style_mode == "keyboard_btn":
 
             # applying new font style & font size to the watermark text.
-            self.image_canvas.itemconfig(self.watermark_text, font=(self.current_font_design, font_size, self.font_style))
+            self.image_canvas.itemconfig(self.watermark_text,
+                                         font=(self.current_font_design, font_size, self.font_style))
 
         elif self.font_style_mode == "radio-btn":
 
-            self.image_canvas.itemconfig(self.watermark_text, font=(self.current_font_design, font_size, self.current_font_style))
+            self.image_canvas.itemconfig(self.watermark_text,
+                                         font=(self.current_font_design, font_size, self.current_font_style))
 
         else:
-            self.image_canvas.itemconfig(self.watermark_text,font=(self.current_font_design, font_size))
+            self.image_canvas.itemconfig(self.watermark_text, font=(self.current_font_design, font_size))
 
         self.scaled_font_size = font_size
         self.reposition_watermark_after_resize()
@@ -734,40 +742,133 @@ class UserInterface(Tk):
 
     # ********************************************** Save Watermark  *************************************************
 
-    def save_preset(self):
+    def collect_preset_data(self):
+        """this method will collect the preset data and call the save preset data method"""
 
         global x_cord, y_cord
         font_properties = self.get_font_properties()
 
+        # if free mode than takes this watermark x and y coordinate
         if self.watermark_mode == "free":
 
             x_cord = self.watermark_rel_x * self.original_width
-            y_cord  = self.watermark_rel_y * self.original_height
+            y_cord = self.watermark_rel_y * self.original_height
 
-
+        # if alignment mode than takes this coordinate of watermark x and y
         elif self.watermark_mode == "alignment":
-            x_cord = self.text_x_cord
-            y_cord = self.text_y_cord
+            try:
+                x_cord = self.text_x_cord
+                y_cord = self.text_y_cord
 
+            # if user didn't align text at all then this will create x and y coords
+            except AttributeError:
+                x_cord = self.watermark_rel_x * self.original_width
+                y_cord = self.watermark_rel_y * self.original_height
+
+        # ask user to enter preset name
         preset_name = simpledialog.askstring("Save Preset", "Please Enter the preset name.")
 
+        # if preset name exist
         if preset_name is not None:
 
-            PRESET_DATA[preset_name] = {
+            preset_data = {
+                preset_name: {
 
-                "watermark_text": self.received_text,
-                "font_properties": font_properties,
-                "font_color": self.selected_color,
-                "font_angle": self.text_rotation,
-                "font_coordinate": (x_cord, y_cord)
+                    "watermark_text": self.received_text,
+                    "font_properties": font_properties,
+                    "font_color": self.selected_color,
+                    "font_angle": self.text_rotation,
+                    "font_coordinate": (x_cord, y_cord)
+                }
             }
 
-            messagebox.showinfo("Result", f"{preset_name}")
+            self.save_preset_data(preset_data, preset_name)
 
+        # if not exist.
         else:
             messagebox.showinfo("Result", "You clicked cancel!")
 
-        print(PRESET_DATA)
+    def save_preset_data(self, preset_data, preset_name):
+        """this method will save the preset data in a json file."""
+
+        # this will create a file if it doesn't exist or read if file does exist.
+        try:
+            with open("preset.json", "r") as file:
+                presets = json.load(file)
+
+        except FileNotFoundError:
+            presets = {}
+
+        if preset_name in presets:
+            messagebox.showinfo("Result",
+                                f"Preset Name {preset_name} is already used please use different preset name!")
+            self.collect_preset_data()
+            return
+
+        # Add the new preset
+        presets.update(preset_data)
+
+        # Save the updated presets
+        with open("preset.json", "w") as file:
+            json.dump(presets, file, indent=4)
+
+        messagebox.showinfo("Result", f"Preset '{preset_name}' saved successfully!")
+
+        self.add_preset_name_in_combobox()
+
+    def add_preset_name_in_combobox(self):
+        """this method will add new created presets in the combobox."""
+
+        try:
+            with open("preset.json", "r") as file:
+                presets = json.load(file)
+
+        except FileNotFoundError:
+
+            # Save the updated presets
+            with open("preset.json", "w") as file:
+                json.dump(presets, file, indent=4)
+
+        self.preset_name = list(presets.keys())  # rebuild the list fresh from the file
+        self.saved_presets_options.config(values=self.preset_name)  # this line is what was missing
+
+    def apply_preset_style(self, event):
+        """this method will apply the preset on the image."""
+
+        # getting selected preset name
+        self.selected_preset = event.widget.get()
+
+        # reading json file
+        with open("preset.json", "r") as file:
+            presets = json.load(file)
+
+        # checking preset name matches with existing preset or not.
+        if self.selected_preset in presets:
+
+            preset_key = presets[self.selected_preset]
+
+            # storing preset value into the variable
+            watermark_text = preset_key["watermark_text"]
+            x_cord = preset_key["font_coordinate"][0]
+            y_cord = preset_key["font_coordinate"][1]
+            font_color = preset_key["font_color"]
+            font_angle = preset_key["font_angle"]
+            font_properties = preset_key["font_properties"]
+
+            font_family = font_properties["family"]
+            font_size = font_properties["size"]
+
+            if font_properties["underline"] == 1:
+                font_properties["underline"] = "underline"
+            else:
+                font_properties["underline"] = ""
+
+            font_style = font_properties["weight"] + " " + font_properties["slant"] + " " + font_properties["underline"]
+
+            # applying preset.
+            self.watermark_text = self.image_canvas.create_text(x_cord, y_cord, text=watermark_text,
+                                                                font=(font_family, font_size, font_style),
+                                                                fill=font_color, angle=font_angle)
 
     # ******************************************* DISPLAY WATERMARK IMAGE **********************************************
 

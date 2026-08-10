@@ -1,3 +1,5 @@
+import data
+
 text_align_options = ['Align-Center', 'Bottom-Right-Corner', 'Bottom-Left-Corner',
                          'Bottom-Center Edge', 'Top-Right-Corner', 'Top-Left-Corner',
                          'Top-Center Edge', 'Left-Center Edge', 'Right-Center Edge']
