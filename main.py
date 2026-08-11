@@ -1,14 +1,10 @@
-import os
-import winreg
 from tkinter import *
 from tkinter import filedialog, font, simpledialog, messagebox
 from tkinter.ttk import Combobox, Style
-from PIL import Image, ImageTk, ImageGrab, ImageDraw, ImageFont
+from PIL import Image, ImageTk, ImageDraw, ImageFont
 from matplotlib import font_manager
-
 from data import text_align_options, watermark_colors
 import json
-import time
 
 
 HEADING_TEXT_COLOR = "black"
@@ -24,13 +20,6 @@ class UserInterface(Tk):
         super().__init__()
 
         # this will set the game window center to the screen.
-
-        self.preset_name = []
-        self.font_style_mode = ""
-        self.font_style = "normal"
-        self.text_rotation = 0
-        self.received_text = None
-        self.scaled_font_size = 8
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         center_x = int((screen_width / 2) - (WINDOW_WIDTH / 2))
@@ -42,18 +31,19 @@ class UserInterface(Tk):
 
         self.current_font_family = "Arial"
         self.current_font_size = 14
-
+        self.preset_name = []
+        self.font_style_mode = ""
+        self.font_style = "normal"
+        self.text_rotation = 0
+        self.received_text = None
+        self.scaled_font_size = 8
         self.watermark_mode = "alignment"
         self.current_alignment = "Align-Center"  # default alignment
-
         self.watermark_rel_x = 0.5  # used only in "free" mode
         self.watermark_rel_y = 0.5
-
         self.zoom_scale = 1.0
-
         self.font_designs = list(font.families())
         self.watermark_colors = watermark_colors
-
         self.add_home_screen_image()
 
     # ************************************************ HOME SCREEN *****************************************************
@@ -284,23 +274,24 @@ class UserInterface(Tk):
         self.add_preset_name_in_combobox()
 
         # creating add image button
-        add_image_button = Button(self.image_edit_widget_canvas, text="Save Image", font=("Arial", 12, "bold"),
+        self.save_image_button = Button(self.image_edit_widget_canvas, text="Save Image", font=("Arial", 12, "bold"),
                                   fg="white",
                                   command=self.save_watermarked_image, bd=0, bg="green", width=18, height=2)
-        add_image_button.place(x=45, y=500)
+        self.save_image_button.place(x=45, y=500)
 
         # creating add image button
-        add_image_button = Button(self.image_edit_widget_canvas, text="Delete Image", font=("Arial", 12, "bold"),
+        self.delete_content_button = Button(self.image_edit_widget_canvas, text="Delete Image", font=("Arial", 12, "bold"),
                                   fg="white",
-                                  command=self.open_file_explorer, bd=0, bg="red", width=18, height=2)
-        add_image_button.place(x=45, y=560)
+                                  command=self.delete_image, bd=0, bg="red", width=18, height=2)
+        self.delete_content_button.place(x=45, y=560)
 
 
         # creating add image button
-        add_image_button = Button(self.image_edit_widget_canvas, text="Select Image", font=("Arial", 12, "bold"),
+        self.add_image_button = Button(self.image_edit_widget_canvas, text="Select Image", font=("Arial", 12, "bold"),
                                   fg="white",
                                   command=self.open_file_explorer, bd=0, bg="#007aff", width=18, height=2)
-        add_image_button.place(x=45, y=620)
+        self.add_image_button.place(x=45, y=620)
+
 
     # ********************************** Display watermark & Align Watermark Position **********************************
 
@@ -577,7 +568,7 @@ class UserInterface(Tk):
         if font_design_entered != "Search font style" and len(font_design_entered) >= 1:
 
             self.hide_widgets(self.search_font_color_field, self.select_font_color, self.font_size_scaler,
-                              self.text_rotation_spinbox, self.saved_presets_options, self.create_present_btn)
+                              self.text_rotation_spinbox, self.saved_presets_options, self.create_present_btn, self.save_image_button, self.delete_content_button,self.add_image_button)
 
             if font_design_entered == "":
                 pass
@@ -624,12 +615,12 @@ class UserInterface(Tk):
 
             self.make_widgets_reappear((self.search_font_color_field, 102, 220), (self.select_font_color, 20, 243),
                                        (self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360),
-                                       (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420))
+                                       (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420), (self.save_image_button,45, 500),(self.delete_content_button, 45, 560), (self.add_image_button, 45, 620))
 
         else:
 
             self.hide_widgets(self.search_font_color_field, self.select_font_color, self.font_size_scaler,
-                              self.text_rotation_spinbox, self.saved_presets_options, self.create_present_btn)
+                              self.text_rotation_spinbox, self.saved_presets_options, self.create_present_btn, self.save_image_button, self.delete_content_button, self.add_image_button)
 
     def apply_font_design(self, event):
         """this method is responsible for applying the font style to the watermark text"""
@@ -664,8 +655,7 @@ class UserInterface(Tk):
         if not hasattr(self, "watermark_text"):
             self.make_widgets_reappear((self.search_font_color_field, 102, 220), (self.select_font_color, 20, 243),
                                        (self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360),
-                                       (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420))
-
+                                       (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420), (self.save_image_button,45, 500), (self.delete_content_button, 45, 560), (self.add_image_button,45, 620))
 
             return
 
@@ -676,7 +666,8 @@ class UserInterface(Tk):
 
         self.make_widgets_reappear((self.search_font_color_field, 102, 220), (self.select_font_color, 20, 243),
                                    (self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360),
-                                   (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420))
+                                   (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420), (self.save_image_button,45, 500), (self.delete_content_button, 45, 560),(self.add_image_button, 45, 620))
+
 
     # *********************************************** Select Font Color ************************************************
 
@@ -689,7 +680,7 @@ class UserInterface(Tk):
         if font_color_entered != "Search font color" and len(font_color_entered) >= 1:
 
             self.hide_widgets(self.font_size_scaler, self.text_rotation_spinbox, self.saved_presets_options,
-                              self.create_present_btn)
+                              self.create_present_btn, self.save_image_button, self.delete_content_button, self.add_image_button)
 
             searched_font_color = []
 
@@ -739,11 +730,11 @@ class UserInterface(Tk):
         if len(matched_font_color) <= 4:
 
             self.make_widgets_reappear((self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360),
-                                       (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420))
+                                       (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420),(self.save_image_button, 45, 500), (self.delete_content_button,45, 560), (self.add_image_button, 45, 620))
 
         else:
             self.hide_widgets(self.font_size_scaler, self.text_rotation_spinbox, self.create_present_btn,
-                              self.saved_presets_options)
+                              self.saved_presets_options, self.save_image_button, self.delete_content_button, self.add_image_button)
 
     def apply_font_color(self, event):
         """this method is responsible for applying the font color to the watermark text"""
@@ -769,14 +760,15 @@ class UserInterface(Tk):
         # this will make sure that after user use font color from list box without adding image and text all widget will appear even after selecting the font color
         if not hasattr(self, "watermark_text"):
             self.make_widgets_reappear((self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360),
-                                       (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420))
+                                       (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420), (self.save_image_button, 45, 500), (self.delete_content_button, 45, 560), (self.add_image_button, 45, 620))
             return
+
 
         # applying new font style to the watermark text.
         self.image_canvas.itemconfig(self.watermark_text, fill=self.selected_color)
 
         self.make_widgets_reappear((self.font_size_scaler, 18, 310), (self.text_rotation_spinbox, 100, 360),
-                                   (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420))
+                                   (self.saved_presets_options, 21, 420), (self.create_present_btn, 155, 420), (self.save_image_button, 45, 500), (self.delete_content_button, 45, 560), (self.add_image_button, 45, 620))
 
     # ********************************************** Increase Font Size ************************************************
 
@@ -1126,7 +1118,9 @@ class UserInterface(Tk):
     # ********************************************* SAVE WATERMARK IMAGE ***********************************************
 
     def delete_image(self):
-        pass
+
+        self.image_canvas.delete("all")
+
 
     # ******************************************* DISPLAY WATERMARK IMAGE **********************************************
 
