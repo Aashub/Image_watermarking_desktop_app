@@ -1,9 +1,15 @@
+import os
+import winreg
 from tkinter import *
 from tkinter import filedialog, font, simpledialog, messagebox
 from tkinter.ttk import Combobox, Style
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageGrab, ImageDraw, ImageFont
+from matplotlib import font_manager
+
 from data import text_align_options, watermark_colors
 import json
+import time
+
 
 HEADING_TEXT_COLOR = "black"
 WINDOW_WIDTH = 1080
@@ -278,10 +284,23 @@ class UserInterface(Tk):
         self.add_preset_name_in_combobox()
 
         # creating add image button
+        add_image_button = Button(self.image_edit_widget_canvas, text="Save Image", font=("Arial", 12, "bold"),
+                                  fg="white",
+                                  command=self.save_watermarked_image, bd=0, bg="green", width=18, height=2)
+        add_image_button.place(x=45, y=500)
+
+        # creating add image button
+        add_image_button = Button(self.image_edit_widget_canvas, text="Delete Image", font=("Arial", 12, "bold"),
+                                  fg="white",
+                                  command=self.open_file_explorer, bd=0, bg="red", width=18, height=2)
+        add_image_button.place(x=45, y=560)
+
+
+        # creating add image button
         add_image_button = Button(self.image_edit_widget_canvas, text="Select Image", font=("Arial", 12, "bold"),
                                   fg="white",
                                   command=self.open_file_explorer, bd=0, bg="#007aff", width=18, height=2)
-        add_image_button.place(x=45, y=600)
+        add_image_button.place(x=45, y=620)
 
     # ********************************** Display watermark & Align Watermark Position **********************************
 
@@ -956,6 +975,7 @@ class UserInterface(Tk):
         self.reposition_watermark_after_resize()
 
     def get_new_image_text_coordinates(self, preset_x_cord, preset_y_cord):
+        """this method will get new x and y coordinate as per new image size."""
 
         # it will prevent program from getting attribute error
         if not hasattr(self, "original_width") or not hasattr(self, "original_height"):
@@ -975,6 +995,138 @@ class UserInterface(Tk):
         new_y_cord = image_y1 + (ratio_y * current_image_height)
 
         return new_x_cord, new_y_cord
+
+    # ********************************************* SAVE WATERMARK IMAGE ***********************************************
+
+    def get_font_path(self, font_family, font_weight, font_slant):
+        "This method is used to find the actual .ttf font file on computer based on the font family, weigh"
+
+        for font in font_manager.fontManager.ttflist:
+
+            if font.name.lower() != font_family.lower():
+                continue
+
+            if font_slant == "italic" and font.style != "italic":
+                continue
+
+            if font_slant != "italic" and font.style == "italic":
+                continue
+
+            if font_weight == "bold" and font.weight < 700:
+                continue
+
+            if font_weight != "bold" and font.weight >= 700:
+                continue
+
+            return font.fname
+
+        return None
+
+
+    def save_watermarked_image(self):
+        """this method will save the image"""
+
+
+        save_path = filedialog.asksaveasfilename(
+            defaultextension=".png",
+            filetypes=[
+                ("PNG Image", "*.png"),
+                ("JPEG Image", "*.jpg")
+            ]
+        )
+
+        if not save_path:
+            return
+
+        # Copy original image
+        output_image = self.original_image.copy().convert("RGBA")
+
+        # Get watermark text
+        watermark_text = self.image_canvas.itemcget(self.watermark_text, "text")
+
+        # Get watermark position
+        canvas_x, canvas_y = self.image_canvas.coords( self.watermark_text)
+
+        # Get image position and size on Canvas
+        Image_x1_cord, image_y1_cord, Image_x2_cord, image_y2_cord = self.image_canvas.bbox(self.image_on_canvas)
+
+        # Convert Canvas position to original image position
+        original_x = ((canvas_x - Image_x1_cord) / (Image_x2_cord - Image_x1_cord)) * output_image.width
+        original_y = ((canvas_y - image_y1_cord) / (image_y2_cord - image_y1_cord)) * output_image.height
+
+        # Get font properties
+        font_properties = self.get_font_properties()
+
+        font_family = font_properties["family"]
+        font_weight = font_properties["weight"]
+        font_slant = font_properties["slant"]
+        font_size = font_properties["size"]
+
+        # Get font file
+        font_path = self.get_font_path(font_family, font_weight, font_slant)
+
+        if font_path is None:
+            messagebox.showwarning(
+                "Font Not Available",
+                f"Sorry, the font '{font_family}' "
+                f"could not be found on your system."
+            )
+            return
+
+
+        # Scale font size
+        scale = output_image.width / (Image_x2_cord - Image_x1_cord)
+        font = ImageFont.truetype(font_path, int(font_size * scale))
+
+        # Get font color
+        font_color = self.image_canvas.itemcget(self.watermark_text, "fill")
+
+        # Get rotation
+        angle = float(self.text_rotation)
+
+        # Create transparent watermark
+        bbox = font.getbbox(watermark_text)
+        width = bbox[2] - bbox[0]
+        height = bbox[3] - bbox[1]
+
+        padding = int(font_size * scale)
+        watermark_width = int(width + padding * 2)
+        watermark_height = int(height + padding * 2)
+
+        watermark = Image.new("RGBA",(watermark_width, watermark_height),(0, 0, 0, 0))
+        watermark_draw = ImageDraw.Draw(watermark)
+
+        center_x = watermark.width // 2
+        center_y = watermark.height // 2
+
+        # Draw text
+        watermark_draw.text((center_x, center_y),watermark_text,font=font,fill=font_color,anchor="mm")
+
+        # Draw underline
+        if font_properties["underline"] == 1:
+            text_bbox = watermark_draw.textbbox((center_x, center_y),watermark_text,font=font,anchor="mm")
+
+            watermark_draw.line(
+                (text_bbox[0],text_bbox[3] + 2,text_bbox[2],text_bbox[3] + 2),fill=font_color,width=max(1, int(font_size * scale * 0.05)))
+
+        # Rotate watermark
+        if angle != 0:
+            watermark = watermark.rotate(angle,expand=True,resample=Image.Resampling.BICUBIC)
+
+        # Paste watermark onto image
+        output_image.alpha_composite(watermark,(int(original_x - watermark.width / 2),int(original_y - watermark.height / 2)))
+
+        # JPEG doesn't support transparency
+        if save_path.lower().endswith((".jpg", ".jpeg")):
+            output_image = output_image.convert("RGB")
+
+        output_image.save(save_path)
+        messagebox.showinfo("Success","Watermarked image saved successfully!")
+
+    # ********************************************* SAVE WATERMARK IMAGE ***********************************************
+
+    def delete_image(self):
+        pass
 
     # ******************************************* DISPLAY WATERMARK IMAGE **********************************************
 
